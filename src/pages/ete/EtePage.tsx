@@ -18,23 +18,39 @@ import autoTable from "jspdf-autotable";
 import ReEnlistModal from "./ReEnlistModal";
 import SubmitStatusModal from "./SubmitStatusModal";
 import DebounceInput from "../../componets/DebounceInput";
+import EmailSendModal from "./RequestExplanationModal";
+import RequestExplanationModal from "./RequestExplanationModal";
+import WarningModal from "./WarningModal";
 
 // ---------------- STATUS TAG ----------------
-export const getStatusTag = (status?: string, daysLeft?: number) => {
-  switch (status) {
-    case "ALREADY SUBMITTED":
-      return <Tag color="blue">ALREADY SUBMITTED</Tag>;
-    case "ACTIVE":
-      return <Tag color="green">ACTIVE</Tag>;
-    case "NEAR ETE":
-      return <Tag color="gold">NEAR ETE ({daysLeft} day/s)</Tag>;
-    case "CRITICAL":
-      return <Tag color="volcano">CRITICAL ({daysLeft} day/s)</Tag>;
-    case "EXPIRED":
-      return <Tag color="red">EXPIRED</Tag>;
-    default:
-      return <Tag>UNKNOWN</Tag>;
+export const getStatusTag = (status?: string, daysLeft: number = 0) => {
+
+  const isWarningRange = daysLeft > 335 && daysLeft <= 395;
+
+  const isExplanationRange = daysLeft <= 335;
+
+  if (status === "ALREADY SUBMITTED") {
+    return <Tag color="blue">ALREADY SUBMITTED</Tag>;
   }
+  else if (isExplanationRange) {
+    return <Tag color="volcano">CRITICAL ({daysLeft} day/s)</Tag>;
+  }
+
+  else if (isWarningRange) {
+    return <Tag color="gold">NEAR ETE ({daysLeft} day/s)</Tag>;
+  }
+
+  else if (status === "ACTIVE") {
+    return <Tag color="green">ACTIVE</Tag>;
+  }
+
+  else if (status === "EXPIRED") {
+    return <Tag color="red">EXPIRED</Tag>;
+  }
+
+
+
+  return <Tag>UNKNOWN</Tag>;
 };
 
 const getStatus = (status?: string, daysLeft?: number) => {
@@ -55,6 +71,8 @@ export default function EtePage() {
   const [submitStatusModal, setSubmitStatusModal] = useState(false);
   const [selectedRecord, setSelectedRecord] =
     useState<EnlistedPersonnelETE | null>(null);
+  const [requestExplanationModal, setRequestExplationModal] = useState<boolean>(false);
+  const [warningModal, setWarningModal] = useState<boolean>(false);
 
   const [filteredData, setFilteredData] = useState<EnlistedPersonnelETE[]>([]);
 
@@ -68,6 +86,15 @@ export default function EtePage() {
     queryFn: async () => await personelService.getEnlistmentETE(),
   });
 
+  const handleOpenExplanationModal = (record: EnlistedPersonnelETE) => {
+    setSelectedRecord(record);
+    setRequestExplationModal(true);
+  };
+
+  const handleOpenWarningModal = (record: EnlistedPersonnelETE) => {
+    setSelectedRecord(record);
+    setWarningModal(true);
+  };
 
   const handleSubmitted = (record: EnlistedPersonnelETE) => {
     setSubmitStatusModal(true);
@@ -120,13 +147,19 @@ export default function EtePage() {
     {
       title: "REMARKS",
       dataIndex: "remarks",
-      width:150,
+      width: 150,
       render: (value, record) => getStatusTag(value, record.eteDaysRemaining),
     },
     {
       title: "ACTION",
       render: (_, record) => {
         if (record.remarks === "NO RECORD") return null;
+
+        const daysLeft = record.eteDaysRemaining ?? 0;
+
+        const isWarningRange = daysLeft > 335 && daysLeft <= 395;
+
+        const isExplanationRange = daysLeft <= 335;
 
         return (
           <>
@@ -137,6 +170,28 @@ export default function EtePage() {
                 onClick={() => handleSubmitted(record)}
               >
                 Submit
+              </Button>
+            )}
+
+            {isWarningRange && (
+              <Button
+                size="small"
+                type="link"
+                style={{ color: '#fbbf24' }}
+                onClick={() => handleOpenWarningModal(record)}
+              >
+                Send Warning
+              </Button>
+            )}
+
+            {isExplanationRange && (
+              <Button
+                size="small"
+                type="link"
+                style={{ color: '#fa541c' }}
+                onClick={() => handleOpenExplanationModal(record)}
+              >
+                Request Explanation
               </Button>
             )}
           </>
@@ -297,8 +352,13 @@ export default function EtePage() {
         setIsModalVisible={setEnlistModal}
         selectedRecord={selectedRecord}
         isModalVisible={enlistModal}
-        onAfterSave={() => {}}
+        onAfterSave={() => { }}
       />
+
+      <RequestExplanationModal visible={requestExplanationModal} onCancel={() => setRequestExplationModal(false)} onSend={() => { }} record={selectedRecord} />
+      <WarningModal visible={warningModal} onCancel={() => setWarningModal(false)} onConfirm={() => {
+
+      }} record={selectedRecord} />
 
       {/* ACTION BUTTONS */}
       <div className="flex justify-end mb-4 gap-1">
