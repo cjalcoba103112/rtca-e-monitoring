@@ -51,6 +51,12 @@ export default function SidebarLayout({ collapsed }: SidebarLayouProps) {
               label: "Statistics",
               onClick: () => navigate("/statistics"),
             },
+             {
+              key: "/user",
+              icon: <HomeOutlined />,
+              label: "User",
+              onClick: () => navigate("/user"),
+            },
             {
               key: "personnel-group",
               icon: <TeamOutlined />,

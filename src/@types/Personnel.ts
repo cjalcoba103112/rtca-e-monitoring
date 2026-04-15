@@ -2,10 +2,11 @@ import type { Department } from "./Department";
 import type { EnlistmentRecord } from "./EnlistmentRecord";
 import type { PersonnelActivity } from "./PersonnelActivity";
 import type { Rank } from "./Rank";
+import type { Usertbl } from "./Usertbl";
 
 export type Personnel = {
   personnelId?: number | null;
-  profile?:string|null;
+  profile?: string | null;
   serialNumber?: string | null;
   firstName?: string | null;
   middleName?: string | null;
@@ -14,6 +15,8 @@ export type Personnel = {
   rank?: Rank | null;
   departmentId?: number | null;
   department?: Department | null;
+  userId?: number | null;
+  user?: Usertbl;
   employmentStatus?: string | null;
   dateEnlisted?: string | null;
   dateEnteredService?: string | null;

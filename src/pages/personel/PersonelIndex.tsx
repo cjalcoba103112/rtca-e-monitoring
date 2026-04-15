@@ -24,10 +24,13 @@ import {
   DeleteOutlined,
   HistoryOutlined,
   UserOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons";
 import CreditsModal from "../leave-history/CreditsModal";
 import imageUtility from "../../utils/imageUtility";
 import PersonnelActivitiesTable from "../leave-history/PersonnelActivitiesTable";
+import UserSaveModal from "../user/UserSaveModal";
+import type { Usertbl } from "../../@types/Usertbl";
 
 export type PersonnelForm = Omit<
   Personnel,
@@ -77,7 +80,9 @@ const PersonnelIndex: React.FC = () => {
   const [filteredData, setFilteredData] = useState<Personnel[]>(personnelList);
   const [leaveHistoryModal, setLeaveHistoryModal] = useState<boolean>(false);
   const [form] = Form.useForm<PersonnelForm>();
-
+const [isUserModalVisible, setIsUserModalVisible] = useState(false);
+  const [userForm] = Form.useForm<Usertbl>();
+  
   const openHistoryModal = (record: Personnel) => {
     setSelectedPersonnel(record);
     setLeaveHistoryModal(true);
@@ -111,6 +116,16 @@ const PersonnelIndex: React.FC = () => {
     refetch();
   };
 
+  const openUserModal = (personnel: Personnel) => {
+    userForm.resetFields();
+    userForm.setFieldsValue({
+      
+      email: personnel.email || undefined,
+    });
+    setSelectedPersonnel(personnel); // Reuse selectedPersonnel to track who we are adding for
+    setIsUserModalVisible(true);
+  };
+
   const columns: ColumnsType<Personnel> = [
     {
       title: "Nr",
@@ -123,50 +138,40 @@ const PersonnelIndex: React.FC = () => {
       dataIndex: "profile",
       width: 120,
       render: (value) => (
-       <div style={{ cursor: 'pointer' }}>
-      <Image
-        width={80}
-        height={80}
-        style={{ objectFit: 'cover', borderRadius: '4px' }}
-        src={imageUtility.getProfile(value)}
-        fallback="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
-        placeholder={
-          <div style={{ width: 80, height: 80, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <UserOutlined style={{ fontSize: 24, color: '#bfbfbf' }} />
-          </div>
-        }
-        preview={{
-          mask: <div style={{ fontSize: 12 }}>View</div>, // Shows "View" text on hover
-        }}
-      />
-    </div>
+        <div style={{ cursor: "pointer" }}>
+          <Image
+            width={80}
+            height={80}
+            style={{ objectFit: "cover", borderRadius: "4px" }}
+            src={imageUtility.getProfile(value)}
+            fallback="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
+            placeholder={
+              <div
+                style={{
+                  width: 80,
+                  height: 80,
+                  background: "#f5f5f5",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <UserOutlined style={{ fontSize: 24, color: "#bfbfbf" }} />
+              </div>
+            }
+            preview={{
+              mask: <div style={{ fontSize: 12 }}>View</div>, // Shows "View" text on hover
+            }}
+          />
+        </div>
       ),
     },
+
     {
-      title: "Rank",
-      dataIndex: "",
-      key: "rank",
-      render: (_, value: Personnel) => value.rank?.rankCode,
-    },
-    {
-      title: "Lastname",
+      title: "Name",
       dataIndex: "lastName",
       key: "lastname",
-    },
-    {
-      title: "Firstname",
-      dataIndex: "firstName",
-      key: "firstname",
-    },
-    {
-      title: "MI",
-      dataIndex: "middleName",
-      key: "middleName",
-    },
-    {
-      title: "Serial Nr",
-      dataIndex: "serialNumber",
-      key: "serialNumber",
+      render: (_, value: Personnel) => nameFormat(value),
     },
     {
       title: "Email",
@@ -211,7 +216,26 @@ const PersonnelIndex: React.FC = () => {
       key: "dateOfLastPromotion",
       render: (value) => (value ? formatDateToMilitary(value) : ""),
     },
-
+    {
+      title: "Has Account",
+      key: "hasAccount",
+      width: 100,
+      align: "center",
+      // Filterable to quickly find people without accounts
+      filters: [
+        { text: "Yes", value: true },
+        { text: "No", value: false },
+      ],
+      onFilter: (value, record) => !!record.userId === value,
+      render: (_, record) => {
+        const hasAccount = !!record.userId || !!record.user;
+        return (
+          <Tag color={hasAccount ? "blue" : "default"}>
+            {hasAccount ? "YES" : "NO"}
+          </Tag>
+        );
+      },
+    },
     {
       title: "Actions",
       key: "actions",
@@ -225,7 +249,16 @@ const PersonnelIndex: React.FC = () => {
               onClick={() => openHistoryModal(record)}
             />
           </Tooltip>
-
+{!record.userId && (
+            <Tooltip title="Create System Account">
+              <Button 
+                type="text" 
+                style={{ color: '#722ed1' }} 
+                icon={<UserAddOutlined />} 
+                onClick={() => openUserModal(record)} 
+              />
+            </Tooltip>
+          )}
           <Tooltip title="Edit">
             <Button
               type="text"
@@ -247,7 +280,7 @@ const PersonnelIndex: React.FC = () => {
     },
   ];
 
-  
+
   return (
     <div>
       <div className="flex justify-between">
@@ -292,7 +325,13 @@ const PersonnelIndex: React.FC = () => {
             (record.personnelActivities?.length || 0) > 0,
         }}
       />
-
+<UserSaveModal
+        form={userForm}
+        isModalVisible={isUserModalVisible}
+        setIsModalVisible={setIsUserModalVisible}
+        selectedUser={null} // Always null because we are adding from this screen
+        onAfterSave={refetch} // Refetch personnel to update "Has Account" tag
+      />
       <CreditsModal
         open={leaveHistoryModal}
         onClose={() => setLeaveHistoryModal(false)}
