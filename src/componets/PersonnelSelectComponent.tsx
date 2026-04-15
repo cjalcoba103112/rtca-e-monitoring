@@ -10,12 +10,15 @@ export type PersonnelSelectProps = {
   name: string;
   label: string;
   required?: boolean;
+  // Added onChange prop
+  onChange?: (value: number | null, option: any) => void;
 };
 
 export default function PersonnelSelectComponent({
   name,
   label,
   required = true,
+  onChange, // Destructure here
 }: PersonnelSelectProps) {
   const { data: personnelList = [] } = useQuery({
     queryKey: ["personnelList"],
@@ -35,6 +38,7 @@ export default function PersonnelSelectComponent({
         placeholder={`Select ${label}`}
         optionFilterProp="children"
         allowClear
+        onChange={onChange} // Pass it to the Select component
         filterOption={(input, option) =>
           (option?.children?.toString() ?? "")
             .toLowerCase()

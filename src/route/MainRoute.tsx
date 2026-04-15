@@ -19,6 +19,7 @@ import LeaveTypesPage from "../pages/LeaveTypes/LeavePage";
 import RequestLeave from "../pages/personnel-activity/RequestLeave";
 import ApprovalLeave from "../pages/personnel-activity/ApprovalLeave";
 import { useAuth } from "../context/UserContext";
+import UserIndex from "../pages/user/UserIndex";
 
 export default function MainRoute() {
   const {user} = useAuth()
@@ -40,6 +41,7 @@ export default function MainRoute() {
           <Route path="/ete" element={<EtePage />} />
           <Route path="/leave-history" element={<LeaveHistoryPage />} />
           <Route path="/leave-Types" element={<LeaveTypesPage />} />
+           <Route path="/user" element={<UserIndex />} />
         </Route>
         <Route path="/auth" element={<AuthPage />} />
       </Routes>
