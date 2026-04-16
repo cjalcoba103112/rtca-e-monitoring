@@ -67,6 +67,11 @@ const PersonnelIndex: React.FC = () => {
     null,
   );
   const [isModalVisible, setIsModalVisible] = useState(false);
+ const [filteredData, setFilteredData] = useState<Personnel[]>([]);
+  const [leaveHistoryModal, setLeaveHistoryModal] = useState<boolean>(false);
+  const [form] = Form.useForm<PersonnelForm>();
+  const [isUserModalVisible, setIsUserModalVisible] = useState(false);
+  const [userForm] = Form.useForm<Usertbl>();
 
   const {
     data: personnelList,
@@ -74,15 +79,16 @@ const PersonnelIndex: React.FC = () => {
     isFetching,
   } = useQuery({
     queryKey: ["personnel"],
-    queryFn: async () => await personelService.getAll(),
+    queryFn: async () => {
+
+      const data = await personelService.getAll()
+      setFilteredData(data);
+      return data;
+    },
     initialData: [],
   });
-  const [filteredData, setFilteredData] = useState<Personnel[]>(personnelList);
-  const [leaveHistoryModal, setLeaveHistoryModal] = useState<boolean>(false);
-  const [form] = Form.useForm<PersonnelForm>();
-const [isUserModalVisible, setIsUserModalVisible] = useState(false);
-  const [userForm] = Form.useForm<Usertbl>();
-  
+ 
+
   const openHistoryModal = (record: Personnel) => {
     setSelectedPersonnel(record);
     setLeaveHistoryModal(true);
@@ -119,7 +125,6 @@ const [isUserModalVisible, setIsUserModalVisible] = useState(false);
   const openUserModal = (personnel: Personnel) => {
     userForm.resetFields();
     userForm.setFieldsValue({
-      
       email: personnel.email || undefined,
     });
     setSelectedPersonnel(personnel); // Reuse selectedPersonnel to track who we are adding for
@@ -171,6 +176,7 @@ const [isUserModalVisible, setIsUserModalVisible] = useState(false);
       title: "Name",
       dataIndex: "lastName",
       key: "lastname",
+      ellipsis:true ,
       render: (_, value: Personnel) => nameFormat(value),
     },
     {
@@ -249,13 +255,13 @@ const [isUserModalVisible, setIsUserModalVisible] = useState(false);
               onClick={() => openHistoryModal(record)}
             />
           </Tooltip>
-{!record.userId && (
+          {!record.userId && (
             <Tooltip title="Create System Account">
-              <Button 
-                type="text" 
-                style={{ color: '#722ed1' }} 
-                icon={<UserAddOutlined />} 
-                onClick={() => openUserModal(record)} 
+              <Button
+                type="text"
+                style={{ color: "#722ed1" }}
+                icon={<UserAddOutlined />}
+                onClick={() => openUserModal(record)}
               />
             </Tooltip>
           )}
@@ -279,7 +285,6 @@ const [isUserModalVisible, setIsUserModalVisible] = useState(false);
       ),
     },
   ];
-
 
   return (
     <div>
@@ -310,7 +315,7 @@ const [isUserModalVisible, setIsUserModalVisible] = useState(false);
 
       <Table
         sticky
-        scroll={{ x: true }}
+        scroll={{ x: "max-content", y: "calc(100vh - 250px)" }}
         pagination={false}
         size="small"
         columns={columns}
@@ -325,12 +330,12 @@ const [isUserModalVisible, setIsUserModalVisible] = useState(false);
             (record.personnelActivities?.length || 0) > 0,
         }}
       />
-<UserSaveModal
+      <UserSaveModal
         form={userForm}
         isModalVisible={isUserModalVisible}
         setIsModalVisible={setIsUserModalVisible}
-        selectedUser={null} // Always null because we are adding from this screen
-        onAfterSave={refetch} // Refetch personnel to update "Has Account" tag
+        selectedUser={null} 
+        onAfterSave={()=>refetch()} 
       />
       <CreditsModal
         open={leaveHistoryModal}
@@ -342,7 +347,7 @@ const [isUserModalVisible, setIsUserModalVisible] = useState(false);
         setIsModalVisible={setIsModalVisible}
         selectedPersonnel={selectedPersonnel}
         isModalVisible={isModalVisible}
-        onAfterSave={refetch}
+        onAfterSave={()=>refetch()} 
       />
     </div>
   );

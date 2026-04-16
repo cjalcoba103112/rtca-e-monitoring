@@ -21,6 +21,8 @@ const imageUtility = {
       return null;
     }
   },
+
+  getFileWithBaseUrl:(path?:string|null)=>baseURL + path,
 };
 
 export default imageUtility;

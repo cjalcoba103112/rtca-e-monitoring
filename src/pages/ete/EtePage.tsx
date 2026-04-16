@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Table, Tag, Button } from "antd";
+import { Table, Tag, Button, Modal } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import personelService from "../../services/personelService";
 import type { EnlistedPersonnelETE } from "../../@types/nonTable/EnlistedPersonnelETE";
@@ -22,36 +22,35 @@ import EmailSendModal from "./RequestExplanationModal";
 import RequestExplanationModal from "./RequestExplanationModal";
 import WarningModal from "./WarningModal";
 import { formatDaysToYMD } from "../../utils/formatDaysToYMD";
+import EteExplanationIndex from "../ete-email-layout/EteExplanationIndex";
 
 // ---------------- STATUS TAG ----------------
 export const getStatusTag = (status?: string, daysLeft: number = 0) => {
-
   const isWarningRange = daysLeft > 335 && daysLeft <= 395;
 
   const isExplanationRange = daysLeft <= 335;
 
-  const daysInText = formatDaysToYMD(daysLeft)
+  const daysInText = formatDaysToYMD(daysLeft);
 
   if (status === "ALREADY SUBMITTED") {
     return <Tag color="blue">ALREADY SUBMITTED</Tag>;
-  }
-  else if (isExplanationRange) {
-    return <Tag color="volcano">CRITICAL  <br />({daysInText})</Tag>;
-  }
-
-  else if (isWarningRange) {
-    return <Tag color="gold">NEAR ETE <br />({daysInText})</Tag>;
-  }
-
-  else if (status === "ACTIVE") {
+  } else if (isExplanationRange) {
+    return (
+      <Tag color="volcano">
+        CRITICAL <br />({daysInText})
+      </Tag>
+    );
+  } else if (isWarningRange) {
+    return (
+      <Tag color="gold">
+        NEAR ETE <br />({daysInText})
+      </Tag>
+    );
+  } else if (status === "ACTIVE") {
     return <Tag color="green">ACTIVE</Tag>;
-  }
-
-  else if (status === "EXPIRED") {
+  } else if (status === "EXPIRED") {
     return <Tag color="red">EXPIRED</Tag>;
   }
-
-
 
   return <Tag>UNKNOWN</Tag>;
 };
@@ -74,10 +73,11 @@ export default function EtePage() {
   const [submitStatusModal, setSubmitStatusModal] = useState(false);
   const [selectedRecord, setSelectedRecord] =
     useState<EnlistedPersonnelETE | null>(null);
-  const [requestExplanationModal, setRequestExplationModal] = useState<boolean>(false);
+  const [requestExplanationModal, setRequestExplationModal] =
+    useState<boolean>(false);
   const [warningModal, setWarningModal] = useState<boolean>(false);
-
   const [filteredData, setFilteredData] = useState<EnlistedPersonnelETE[]>([]);
+  const [explainModal, setExplainModal] = useState<boolean>(false);
 
   const {
     data = [],
@@ -101,6 +101,11 @@ export default function EtePage() {
 
   const handleSubmitted = (record: EnlistedPersonnelETE) => {
     setSubmitStatusModal(true);
+    setSelectedRecord(record);
+  };
+
+  const handleViewExplain = (record: EnlistedPersonnelETE) => {
+    setExplainModal(true);
     setSelectedRecord(record);
   };
 
@@ -154,6 +159,49 @@ export default function EtePage() {
       render: (value, record) => getStatusTag(value, record.eteDaysRemaining),
     },
     {
+      title: "COMM. STATUS",
+      width: 150,
+      align: "center",
+      render: (_, record) => {
+
+        if (
+          record?.emailCategory === "REQUEST EXPLANATION" &&
+          record?.supportingDocument
+        ) {
+          return (
+            <Button
+              size="small"
+              type="link"
+              onClick={() => handleViewExplain(record)}
+              style={{
+                color: "#52c41a",
+                textDecoration: "underline",
+                padding: 0,
+              }}
+            >
+              Review Letter
+            </Button>
+          );
+        }
+
+        if (record?.emailCategory === "REQUEST EXPLANATION") {
+          return (
+            <Tag color="processing" style={{ fontWeight: "500" }}>
+              Requested
+            </Tag>
+          );
+        }
+
+        if (record.emailCategory === "NOTIFY") {
+          return (
+            <Tag color="orange" style={{ fontWeight: "500" }}>
+              Notified
+            </Tag>
+          );
+        }
+      },
+    },
+    {
       title: "ACTION",
       render: (_, record) => {
         if (record.remarks === "NO RECORD") return null;
@@ -180,23 +228,28 @@ export default function EtePage() {
               <Button
                 size="small"
                 type="link"
-                style={{ color: '#fbbf24' }}
                 onClick={() => handleOpenWarningModal(record)}
+                style={{
+                  color:
+                    record.emailCategory === "NOTIFY" ? "#52c41a" : "#fbbf24",
+
+                  padding: 0,
+                }}
               >
-                Notify
+                {record.emailCategory === "NOTIFY" ? "Re-Notify" : "Notify"}
               </Button>
             )}
 
-            {/* {isExplanationRange && ( */}
+            {!record.supportingDocument && isExplanationRange && (
               <Button
                 size="small"
                 type="link"
-                style={{ color: '#fa541c' }}
+                style={{ color: "#fa541c" }}
                 onClick={() => handleOpenExplanationModal(record)}
               >
-                Request Explanation
+                {record.emailCategory ? "Resend" : "Request"} Explanation
               </Button>
-            {/* )} */}
+            )}
           </>
         );
       },
@@ -341,6 +394,18 @@ export default function EtePage() {
   return (
     <>
       <div className="flex gap-2 mb-4"></div>
+      <Modal
+        closable={{ "aria-label": "Custom Close Button" }}
+        open={explainModal}
+        onOk={() => {}}
+        okText="Submit"
+        onCancel={() => {
+          setExplainModal(false);
+        }}
+        width={1500}
+      >
+        <EteExplanationIndex selectedEte={selectedRecord} />
+      </Modal>
       <SubmitStatusModal
         setIsModalVisible={setSubmitStatusModal}
         selectedRecord={selectedRecord}
@@ -355,23 +420,28 @@ export default function EtePage() {
         setIsModalVisible={setEnlistModal}
         selectedRecord={selectedRecord}
         isModalVisible={enlistModal}
-        onAfterSave={() => { }}
+        onAfterSave={() => {}}
       />
 
-      <RequestExplanationModal visible={requestExplanationModal} onCancel={() => setRequestExplationModal(false)} onAfterSend={() => {
-        refetch();
-        setRequestExplationModal(false)
-      }} record={selectedRecord} />
+      <RequestExplanationModal
+        visible={requestExplanationModal}
+        onCancel={() => setRequestExplationModal(false)}
+        onAfterSend={() => {
+          refetch();
+          setRequestExplationModal(false);
+        }}
+        record={selectedRecord}
+      />
 
       <WarningModal
         visible={warningModal}
         onCancel={() => setWarningModal(false)}
-
         record={selectedRecord}
         onAfterSend={() => {
           refetch();
-          setWarningModal(false)
-        }} />
+          setWarningModal(false);
+        }}
+      />
 
       {/* ACTION BUTTONS */}
       <div className="flex justify-end mb-4 gap-1">
@@ -403,7 +473,7 @@ export default function EtePage() {
       {/* TABLE */}
       <Table
         sticky
-        scroll={{ x: 1000 }}
+        scroll={{ y: "calc(100vh - 250px)" }}
         loading={isFetching}
         rowKey={(record) => record.personnelId ?? 0}
         columns={columns}

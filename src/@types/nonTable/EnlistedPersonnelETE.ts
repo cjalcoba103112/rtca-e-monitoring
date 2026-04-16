@@ -5,5 +5,7 @@ export type EnlistedPersonnelETE = {
   dateOfLatestReEnlistment?: Date;
   nextETE?: Date;
   remarks?: string;
-  eteDaysRemaining?:number
+  eteDaysRemaining?:number,
+  emailCategory?:string,
+  supportingDocument?:string
 } & Personnel;
