@@ -8,11 +8,8 @@ import {
   Divider,
 } from "antd";
 import {
-  UserOutlined,
   MailOutlined,
   LockOutlined,
-  NumberOutlined,
-  SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
 import authService from "../../services/authService";

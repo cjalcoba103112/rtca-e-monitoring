@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Input, Alert, Form, Typography, message, Avatar, Space, Divider, Tag, Card } from 'antd';
+import { Modal, Input, Alert, Form, Typography, message, Avatar, Space, Divider, Tag } from 'antd';
 import {
   InfoCircleOutlined,
   UserOutlined,

@@ -5,7 +5,6 @@ import {
     FileDoneOutlined,
     InfoCircleOutlined,
     UserOutlined,
-    CalendarOutlined,
     ArrowRightOutlined
 } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';

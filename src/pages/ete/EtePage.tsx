@@ -18,7 +18,6 @@ import autoTable from "jspdf-autotable";
 import ReEnlistModal from "./ReEnlistModal";
 import SubmitStatusModal from "./SubmitStatusModal";
 import DebounceInput from "../../componets/DebounceInput";
-import EmailSendModal from "./RequestExplanationModal";
 import RequestExplanationModal from "./RequestExplanationModal";
 import WarningModal from "./WarningModal";
 import { formatDaysToYMD } from "../../utils/formatDaysToYMD";

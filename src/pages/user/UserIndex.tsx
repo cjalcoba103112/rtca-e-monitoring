@@ -5,9 +5,7 @@ import { UserOutlined } from "@ant-design/icons";
 import type { Usertbl } from "../../@types/Usertbl";
 import { useQuery } from "@tanstack/react-query";
 import userService from "../../services/userService";
-import UserSaveModal from "./UserSaveModal"; // You will need to create this modal
-import nameFormat from "../../utils/nameFormat";
-import imageUtility from "../../utils/imageUtility";
+import UserSaveModal from "./UserSaveModal"; 
 
 const UserIndex: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<Usertbl | null>(null);
@@ -49,13 +47,13 @@ const UserIndex: React.FC = () => {
       title: "Profile",
       key: "profile",
       width:100,
-      render: (_, record) => (
+      render: () => (
        <div style={{ cursor: 'pointer' }}>
       <Image
         width={80}
         height={80}
         style={{ objectFit: 'cover', borderRadius: '4px' }}
-        src={imageUtility.getProfile(record.personnel?.profile)}
+        src={""}
         fallback="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
         placeholder={
           <div style={{ width: 80, height: 80, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -74,14 +72,14 @@ const UserIndex: React.FC = () => {
       dataIndex: "email", 
       key: "email" 
     },
-    { 
-      title: "Personnel Name", 
-      key: "fullName",
-      render: (_, record) => {
-        const p = record.personnel;
-        return p ? nameFormat(p) : "N/A";
-      }
-    },
+    // { 
+    //   title: "Personnel Name", 
+    //   key: "fullName",
+    //   render: (_, record) => {
+    //     const p = record.personnel;
+    //     return p ? nameFormat(p) : "N/A";
+    //   }
+    // },
     
     {
       title: "Actions",
