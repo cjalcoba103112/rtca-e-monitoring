@@ -1,9 +1,11 @@
-import React from 'react';
-import { Modal, Alert, Typography, Form, Input, Space, Avatar, Card } from 'antd';
+import React, { useState } from 'react';
+import { Modal, Alert, Typography, Form, Input, Space, Avatar, Card, message } from 'antd';
 import { BellOutlined, UserOutlined } from '@ant-design/icons';
 import type { EnlistedPersonnelETE } from '../../@types/nonTable/EnlistedPersonnelETE';
 import nameFormat from '../../utils/nameFormat';
 import imageUtility from '../../utils/imageUtility';
+import { formatDaysToYMD } from '../../utils/formatDaysToYMD';
+import emailEteCommunicationService from '../../services/emailEteCommunicationService';
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -11,19 +13,37 @@ const { Text, Title } = Typography;
 interface WarningModalProps {
     visible: boolean;
     onCancel: () => void;
-    onConfirm: (remarks: string) => void;
+     onAfterSend: () => void;
     record: EnlistedPersonnelETE | null;
 }
 
-const WarningModal: React.FC<WarningModalProps> = ({ visible, onCancel, onConfirm, record }) => {
+const WarningModal: React.FC<WarningModalProps> = ({ visible, onCancel, onAfterSend, record }) => {
+    const [loading, setLoading] = useState<boolean>(false);
     const [form] = Form.useForm();
     const personnelName = nameFormat(record) || 'Personnel';
 
-    const handleOk = () => {
-        form.validateFields().then((values) => {
-            onConfirm(values.remarks);
-            form.resetFields();
-        });
+    const handleOk = async() => {
+        try {
+             const values = await form.validateFields();
+             setLoading(true);
+       
+             await emailEteCommunicationService.add({
+               personnelId: record?.personnelId,
+               emailCategory: "NOTIFY",
+               nextEte: record?.nextETE,
+               remarks: values.remarks,
+               remainingDays: record?.eteDaysRemaining
+             });
+       
+             message.success('Renewal Reminder sent successfully');
+             form.resetFields();
+             onAfterSend();
+           } catch (error) {
+             console.error("Failed to send:", error);
+             message.error('Failed to send request. Please try again.');
+           } finally {
+             setLoading(false);
+           }
     };
 
     return (
@@ -39,25 +59,25 @@ const WarningModal: React.FC<WarningModalProps> = ({ visible, onCancel, onConfir
             onCancel={onCancel}
             okText="Send Reminder"
             cancelText="Cancel"
-            okButtonProps={{ style: { backgroundColor: '#faad14', borderColor: '#faad14' } }}
-            width={650} // Slightly wider to accommodate the new card design
+            okButtonProps={{loading, style: { backgroundColor: '#faad14', borderColor: '#faad14' } }}
+            width={800}
             destroyOnClose
             centered
         >
             <Space direction="vertical" size="large" style={{ display: 'flex', marginTop: 16 }}>
-                
+
                 {/* 1. New Profile Header Card */}
                 <Card bodyStyle={{ padding: '16px' }} bordered={true} style={{ background: '#fafafa', borderColor: '#f0f0f0' }}>
                     <Space size="middle" align="start">
                         {/* Avatar/Profile Image */}
-                        {JSON.stringify(record?.profile)}
-                        <Avatar 
-                            size={64} 
+
+                        <Avatar
+                            size={64}
                             src={imageUtility.getProfile(record?.profile)} // Replace with your actual image URL property
-                            icon={<UserOutlined />} 
+                            icon={<UserOutlined />}
                             style={{ backgroundColor: '#f0f0f0', color: '#bfbfbf', border: '1px solid #d9d9d9' }}
                         />
-                        
+
                         {/* Personnel Details */}
                         <Space direction="vertical" size={0}>
                             <Text type="secondary" style={{ fontSize: '12px', marginBottom: -4 }}>Personnel</Text>
@@ -75,7 +95,7 @@ const WarningModal: React.FC<WarningModalProps> = ({ visible, onCancel, onConfir
                     message="Advance Notification Window"
                     description={
                         <>
-                            This individual has <Text strong color="orange">{record?.eteDaysRemaining} days</Text> remaining. Sending this will alert them to begin preparing their renewal documentation early.
+                            This individual has <Text strong color="orange">{formatDaysToYMD(record?.eteDaysRemaining)}</Text> remaining. Sending this will alert them to begin preparing their renewal documentation early.
                         </>
                     }
                     type="warning"
@@ -97,7 +117,7 @@ const WarningModal: React.FC<WarningModalProps> = ({ visible, onCancel, onConfir
                 </Form>
 
                 <div style={{ textAlign: 'center' }}>
-                     <Text type="secondary" style={{ fontSize: '12px' }}>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
                         * This action will trigger an automated email to the personnel.
                     </Text>
                 </div>

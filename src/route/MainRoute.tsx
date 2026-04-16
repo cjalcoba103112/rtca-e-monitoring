@@ -20,6 +20,8 @@ import RequestLeave from "../pages/personnel-activity/RequestLeave";
 import ApprovalLeave from "../pages/personnel-activity/ApprovalLeave";
 import { useAuth } from "../context/UserContext";
 import UserIndex from "../pages/user/UserIndex";
+import EteExplanationIndex from "../pages/ete-email-layout/EteExplanationIndex";
+import EteNotifyIndex from "../pages/ete-email-layout/EteNotifyIndex";
 
 export default function MainRoute() {
   const {user} = useAuth()
@@ -43,6 +45,8 @@ export default function MainRoute() {
           <Route path="/leave-Types" element={<LeaveTypesPage />} />
            <Route path="/user" element={<UserIndex />} />
         </Route>
+        <Route path="/ete-explanation/:token" element={<EteExplanationIndex />} />
+         <Route path="/ete-notify/:token" element={<EteNotifyIndex />} />
         <Route path="/auth" element={<AuthPage />} />
       </Routes>
     </Router>

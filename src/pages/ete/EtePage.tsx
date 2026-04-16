@@ -21,6 +21,7 @@ import DebounceInput from "../../componets/DebounceInput";
 import EmailSendModal from "./RequestExplanationModal";
 import RequestExplanationModal from "./RequestExplanationModal";
 import WarningModal from "./WarningModal";
+import { formatDaysToYMD } from "../../utils/formatDaysToYMD";
 
 // ---------------- STATUS TAG ----------------
 export const getStatusTag = (status?: string, daysLeft: number = 0) => {
@@ -29,15 +30,17 @@ export const getStatusTag = (status?: string, daysLeft: number = 0) => {
 
   const isExplanationRange = daysLeft <= 335;
 
+  const daysInText = formatDaysToYMD(daysLeft)
+
   if (status === "ALREADY SUBMITTED") {
     return <Tag color="blue">ALREADY SUBMITTED</Tag>;
   }
   else if (isExplanationRange) {
-    return <Tag color="volcano">CRITICAL ({daysLeft} day/s)</Tag>;
+    return <Tag color="volcano">CRITICAL  <br />({daysInText})</Tag>;
   }
 
   else if (isWarningRange) {
-    return <Tag color="gold">NEAR ETE ({daysLeft} day/s)</Tag>;
+    return <Tag color="gold">NEAR ETE <br />({daysInText})</Tag>;
   }
 
   else if (status === "ACTIVE") {
@@ -180,11 +183,11 @@ export default function EtePage() {
                 style={{ color: '#fbbf24' }}
                 onClick={() => handleOpenWarningModal(record)}
               >
-                Send Warning
+                Notify
               </Button>
             )}
 
-            {isExplanationRange && (
+            {/* {isExplanationRange && ( */}
               <Button
                 size="small"
                 type="link"
@@ -193,7 +196,7 @@ export default function EtePage() {
               >
                 Request Explanation
               </Button>
-            )}
+            {/* )} */}
           </>
         );
       },
@@ -355,10 +358,20 @@ export default function EtePage() {
         onAfterSave={() => { }}
       />
 
-      <RequestExplanationModal visible={requestExplanationModal} onCancel={() => setRequestExplationModal(false)} onSend={() => { }} record={selectedRecord} />
-      <WarningModal visible={warningModal} onCancel={() => setWarningModal(false)} onConfirm={() => {
-
+      <RequestExplanationModal visible={requestExplanationModal} onCancel={() => setRequestExplationModal(false)} onAfterSend={() => {
+        refetch();
+        setRequestExplationModal(false)
       }} record={selectedRecord} />
+
+      <WarningModal
+        visible={warningModal}
+        onCancel={() => setWarningModal(false)}
+
+        record={selectedRecord}
+        onAfterSend={() => {
+          refetch();
+          setWarningModal(false)
+        }} />
 
       {/* ACTION BUTTONS */}
       <div className="flex justify-end mb-4 gap-1">
