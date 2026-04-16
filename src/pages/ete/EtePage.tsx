@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { Table, Tag, Button, Modal } from "antd";
+import { Table, Tag, Button, Modal, Space, Input } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import personelService from "../../services/personelService";
 import type { EnlistedPersonnelETE } from "../../@types/nonTable/EnlistedPersonnelETE";
 import nameFormat from "../../utils/nameFormat";
 import { formatDateToMilitary } from "../../utils/formatDateToMilitary";
 import { useState } from "react";
+import { SearchOutlined } from "@ant-design/icons"
 
 // Excel
 import * as XLSX from "xlsx";
@@ -22,6 +23,7 @@ import RequestExplanationModal from "./RequestExplanationModal";
 import WarningModal from "./WarningModal";
 import { formatDaysToYMD } from "../../utils/formatDaysToYMD";
 import EteExplanationIndex from "../ete-email-layout/EteExplanationIndex";
+import dayjs from "dayjs";
 
 // ---------------- STATUS TAG ----------------
 export const getStatusTag = (status?: string, daysLeft: number = 0) => {
@@ -110,53 +112,70 @@ export default function EtePage() {
 
   // ---------------- TABLE COLUMNS ----------------
   const columns: ColumnsType<EnlistedPersonnelETE> = [
-    {
-      title: "#",
-      align: "center",
-      width: 40,
-      render: (_, __, index) => index + 1,
-    },
-    {
-      title: "Name",
-      width: 300,
-      render: (_, record) => nameFormat(record),
-    },
-    {
-      title: "DATE ENTERED SVC",
-      align: "center",
-      dataIndex: "dateEnteredService",
-      render: (value) => formatDateToMilitary(value),
-    },
-    {
-      title: "YEAR/S IN SVC",
-      align: "center",
-      width: 100,
-      dataIndex: "yearsInService",
-    },
-    {
-      title: "DATE OF ENLISTMENT",
-      align: "center",
-      dataIndex: "dateEnlisted",
-      render: (value) => formatDateToMilitary(value),
-    },
-    {
-      title: "LATEST RE-ENLISTMENT",
-      align: "center",
-      dataIndex: "dateOfLatestReEnlistment",
-      render: (value) => formatDateToMilitary(value),
-    },
-    {
-      title: "NEXT ETE",
-      align: "center",
-      dataIndex: "nextETE",
-      render: (date) => (date ? formatDateToMilitary(date) : "-"),
-    },
-    {
-      title: "REMARKS",
-      dataIndex: "remarks",
-      width: 150,
-      render: (value, record) => getStatusTag(value, record.eteDaysRemaining),
-    },
+   {
+    title: "#",
+    align: "center",
+    width: 60,
+    render: (_, __, index) => index + 1,
+    fixed: 'left' // Good practice to keep index and name fixed
+  },
+  {
+    title: "Name",
+    width: 250,
+    fixed: 'left',
+    render: (_, record) => nameFormat(record),
+    // --- SEARCH LOGIC ---
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+      <div style={{ padding: 8 }}>
+        <Input
+          placeholder="Search Name"
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => confirm()}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button type="primary" onClick={() => confirm()} icon={<SearchOutlined />} size="small" style={{ width: 90 }}>
+            Search
+          </Button>
+          <Button onClick={() => clearFilters && clearFilters()} size="small" style={{ width: 90 }}>
+            Reset
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
+    onFilter: (value, record) => nameFormat(record).toLowerCase().includes((value as string).toLowerCase()),
+  },
+  {
+    title: "DATE ENTERED SVC",
+    align: "center",
+    dataIndex: "dateEnteredService",
+    sorter: (a, b) => dayjs(a.dateEnteredService).unix() - dayjs(b.dateEnteredService).unix(),
+    render: (value) => formatDateToMilitary(value),
+  },
+  {
+    title: "YEAR/S IN SVC",
+    align: "center",
+    width: 120,
+    dataIndex: "yearsInService",
+    sorter: (a, b) => (a.yearsInService ?? 0) - (b.yearsInService ?? 0),
+  },
+  {
+    title: "NEXT ETE",
+    align: "center",
+    dataIndex: "nextETE",
+    sorter: (a, b) => dayjs(a.nextETE).unix() - dayjs(b.nextETE).unix(),
+    render: (date) => (date ? formatDateToMilitary(date) : "-"),
+  },
+  {
+    title: "REMARKS",
+    dataIndex: "remarks",
+    width: 150,
+    // Sorting by text
+    sorter: (a, b) => (a.remarks || "").localeCompare(b.remarks || ""),
+    render: (value, record) => getStatusTag(value, record.eteDaysRemaining),
+  },
     {
       title: "COMM. STATUS",
       width: 150,

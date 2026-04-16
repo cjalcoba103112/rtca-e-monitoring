@@ -7,6 +7,7 @@ import {
   Space,
   Form,
   Tag,
+  Input,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { PersonnelActivity } from "../../@types/PersonnelActivity";
@@ -18,6 +19,8 @@ import nameFormat from "../../utils/nameFormat";
 import { convertUtcToPhDateShort } from "../../utils/convertUtcToPhDateShort";
 import DebounceInput from "../../componets/DebounceInput";
 import PersonnelActivityApprovalModal from "./PersonnelActivityApprovalModal";
+import activityTypeService from "../../services/activityTypeService";
+import { SearchOutlined } from "@ant-design/icons";
 
 dayjs.extend(isBetween);
 
@@ -49,7 +52,11 @@ const ApprovalLeave: React.FC = () => {
     queryFn: async () => await personnelActivityService.getAll(),
     initialData: [],
   });
-
+  const { data: activityTypes } = useQuery({
+    queryKey: ["activityTypes"],
+    queryFn: async () => await activityTypeService.getAll(),
+    initialData: [],
+  });
   const [form] = Form.useForm();
 
   const openModal = (activity?: PersonnelActivity) => {
@@ -77,30 +84,96 @@ const ApprovalLeave: React.FC = () => {
 
   const columns: ColumnsType<PersonnelActivity> = [
     {
-      title: "Personnel",
-      dataIndex: "personnel",
-      key: "personnel",
-      render: (value: Personnel) => nameFormat(value),
-    },
-    {
-      title: "Activity Type",
-      dataIndex: "activityType",
-      key: "activityType",
-      render: (value: ActivityType) => value.activityTypeName,
-    },
-    { title: "Title", dataIndex: "title", key: "title" },
-    {
-      title: "Start Date",
-      dataIndex: "startDate",
-      key: "startDate",
-      render: (date) => convertUtcToPhDateShort(date),
-    },
-    {
-      title: "End Date",
-      dataIndex: "endDate",
-      key: "endDate",
-      render: (date) => convertUtcToPhDateShort(date),
-    },
+        title: "Personnel",
+        dataIndex: "personnel",
+        key: "personnel",
+     
+        render: (value: Personnel) => nameFormat(value),
+        // --- SEARCH LOGIC FOR NAME ---
+        filterDropdown: ({
+          setSelectedKeys,
+          selectedKeys,
+          confirm,
+          clearFilters,
+        }) => (
+          <div style={{ padding: 8 }}>
+            <Input
+              placeholder="Search Personnel"
+              value={selectedKeys[0]}
+              onChange={(e) =>
+                setSelectedKeys(e.target.value ? [e.target.value] : [])
+              }
+              onPressEnter={() => confirm()}
+              style={{ marginBottom: 8, display: "block" }}
+            />
+            <Space>
+              <Button
+                type="primary"
+                onClick={() => confirm()}
+                icon={<SearchOutlined />}
+                size="small"
+                style={{ width: 90 }}
+              >
+                Search
+              </Button>
+              <Button
+                onClick={() => clearFilters && clearFilters()}
+                size="small"
+                style={{ width: 90 }}
+              >
+                Reset
+              </Button>
+            </Space>
+          </div>
+        ),
+        filterIcon: (filtered: boolean) => (
+          <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
+        ),
+        onFilter: (value, record) =>
+          nameFormat(record.personnel)
+            .toLowerCase()
+            .includes((value as string).toLowerCase()),
+      },
+      {
+        title: "Activity Type",
+        dataIndex: "activityType",
+        key: "activityType",
+        width: 150,
+        render: (value: ActivityType) => value.activityTypeName,
+        filters:
+          activityTypes?.map((c) => ({
+            text: c.activityTypeName || "Unknown",
+  
+            value: c.activityTypeName ?? "",
+          })) ?? [],
+  
+        onFilter: (value, record) =>
+          record?.activityType?.activityTypeName?.includes(value as string) ??
+          true,
+      },
+      {
+        title: "Title",
+        dataIndex: "title",
+        key: "title",
+      },
+      {
+        title: "Start Date",
+        dataIndex: "startDate",
+        key: "startDate",
+        align: "center",
+        width: 130,
+        sorter: (a, b) => dayjs(a.startDate).unix() - dayjs(b.startDate).unix(),
+        render: (date) => convertUtcToPhDateShort(date),
+      },
+      {
+        title: "End Date",
+        dataIndex: "endDate",
+        key: "endDate",
+        align: "center",
+        width: 130,
+        sorter: (a, b) => dayjs(a.endDate).unix() - dayjs(b.endDate).unix(),
+        render: (date) => convertUtcToPhDateShort(date),
+      },
     {
       title: "Status",
       key: "status",
