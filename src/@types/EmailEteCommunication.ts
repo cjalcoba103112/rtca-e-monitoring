@@ -15,5 +15,7 @@ export type EmailEteCommunication = {
 	responseDateTime?: Date | null;
 	remarks?: string | null;
 	remainingDays?:number|null;
-	supportingDocument?:string|null
+	supportingDocument?:string|null;
+	isWarningSent?:boolean |  null
+
 };
