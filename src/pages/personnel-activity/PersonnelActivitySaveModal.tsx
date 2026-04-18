@@ -60,25 +60,29 @@ export default function PersonnelActivitySaveModal({
 
   // 3. EFFECT: Call the API to compute days exactly like the backend
   useEffect(() => {
-    const fetchDays = async () => {
-      if (startDate && endDate) {
-        setIsCalculating(true);
-        try {
-          const days = await dayService.computeDays(
-            dayjs(startDate).format("YYYY-MM-DD"),
-            dayjs(endDate).format("YYYY-MM-DD"),
-            selectedTypeObj?.isMandatoryLeave ?? false
-          );
-          setServerDays(days);
-        } catch (err) {
-          console.error("Calculation error", err);
-        } finally {
-          setIsCalculating(false);
-        }
-      } else {
-        setServerDays(0);
-      }
-    };
+   const fetchDays = async () => {
+  if (startDate && endDate) {
+    setIsCalculating(true);
+    try {
+      // Use .startOf('day') to avoid hours/minutes causing logic errors
+      const formattedStart = dayjs(startDate).startOf('day').format("YYYY-MM-DD");
+      const formattedEnd = dayjs(endDate).startOf('day').format("YYYY-MM-DD");
+      
+      const days = await dayService.computeDays(
+        formattedStart,
+        formattedEnd,
+        selectedTypeObj?.isMandatoryLeave ?? false
+      );
+      setServerDays(days);
+    } catch (err) {
+      console.error("Calculation error", err);
+    } finally {
+      setIsCalculating(false);
+    }
+  } else {
+    setServerDays(0);
+  }
+};
 
     fetchDays();
   }, [startDate, endDate, selectedTypeObj]);
