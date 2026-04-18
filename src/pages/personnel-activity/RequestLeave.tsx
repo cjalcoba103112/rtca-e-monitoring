@@ -192,6 +192,14 @@ const RequestLeave: React.FC = () => {
       render: (date) => convertUtcToPhDateShort(date),
     },
     {
+      title: "Day/s",
+      dataIndex: "days",
+      key: "days",
+      align: "center",
+      width: 130,
+     
+    },
+    {
       title: "Status",
       key: "status",
       width: 140,

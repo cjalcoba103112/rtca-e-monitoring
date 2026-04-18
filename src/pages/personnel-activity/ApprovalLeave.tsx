@@ -175,6 +175,14 @@ const ApprovalLeave: React.FC = () => {
         render: (date) => convertUtcToPhDateShort(date),
       },
     {
+      title: "Day/s",
+      dataIndex: "days",
+      key: "days",
+      align: "center",
+      width: 130,
+     
+    },
+    {
       title: "Status",
       key: "status",
       render: (_, record) => {
