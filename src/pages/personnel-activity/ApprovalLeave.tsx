@@ -21,6 +21,7 @@ import DebounceInput from "../../componets/DebounceInput";
 import PersonnelActivityApprovalModal from "./PersonnelActivityApprovalModal";
 import activityTypeService from "../../services/activityTypeService";
 import { SearchOutlined } from "@ant-design/icons";
+import ApprovalModal from "../approvalProcess/ApprovalModal";
 
 dayjs.extend(isBetween);
 
@@ -307,13 +308,12 @@ const ApprovalLeave: React.FC = () => {
         title={() => "History"}
       />
 
-      <PersonnelActivityApprovalModal
+      <ApprovalModal
       
         setIsModalVisible={setIsModalVisible}
         selectedActivity={selectedActivity}
         isModalVisible={isModalVisible}
-        onAfterSave={refetch}
-      />
+        onAfterSave={refetch}      />
     </div>
   );
 };

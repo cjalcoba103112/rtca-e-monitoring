@@ -107,7 +107,7 @@ const RequestExplanationModal: React.FC<Props> = ({ visible, onCancel, onAfterSe
         message={<Text strong className="text-amber-800">Compliance Action Required</Text>}
         description={
           <Text className="text-amber-700 text-xs sm:text-sm">
-            This personnel is currently at <b>{formatDaysToYMD(record?.eteDaysRemaining)}</b> remaining, which is below the <b>11-month</b> document finalization threshold.
+            This personnel is currently at <b>{formatDaysToYMD(record?.eteDaysRemaining)}</b> remaining, which is below the <b>1 year</b> document finalization threshold.
             Sending this request creates a formal audit trail and requires the personnel to submit a justification via the secure portal.
           </Text>
         }

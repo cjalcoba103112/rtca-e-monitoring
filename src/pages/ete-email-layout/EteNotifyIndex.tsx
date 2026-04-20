@@ -42,10 +42,10 @@ const EteNotifyIndex: React.FC = () => {
                 <Space direction="vertical" size="large" className="w-full">
                     {/* Critical Warning Alert */}
                     <Alert
-                        message={<Text strong className="text-amber-900">11-Month Compliance Threshold Notice</Text>}
+                        message={<Text strong className="text-amber-900">1 Year Compliance Threshold Notice</Text>}
                         description={
                             <div className="text-amber-800">
-                                Administrative regulations require all clearance documents to be finalized **no later than 11 months** prior to your ETE.
+                                Administrative regulations require all clearance documents to be finalized **no later than 1 year** prior to your ETE.
                                 Currently, you have <b className="underline">{formatDaysToYMD(info?.remainingDays)}</b> remaining.
                                 If documents are not submitted within the next {formatDaysToYMD((info?.remainingDays ?? 0) - 335)}, you will be required to submit a **Formal Statement of Explanation**.
                             </div>
@@ -132,7 +132,7 @@ const EteNotifyIndex: React.FC = () => {
                                         <Text strong className="text-blue-800">Why am I seeing this?</Text>
                                         <br />
                                         <Text className="text-blue-700 text-xs">
-                                            Our system flags personnel entering the 12-month window to ensure no one misses the mandatory 11-month finalization cutoff.
+                                            Our system flags personnel entering the 13-month window to ensure no one misses the mandatory 1 year finalization cutoff.
                                         </Text>
                                     </div>
                                 </div>

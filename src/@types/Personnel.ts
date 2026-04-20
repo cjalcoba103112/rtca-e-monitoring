@@ -1,6 +1,7 @@
 import type { Department } from "./Department";
 import type { EnlistmentRecord } from "./EnlistmentRecord";
 import type { PersonnelActivity } from "./PersonnelActivity";
+import type { PersonnelDutyLogs } from "./PersonnelDutyLogs";
 import type { Rank } from "./Rank";
 import type { Usertbl } from "./Usertbl";
 
@@ -24,4 +25,5 @@ export type Personnel = {
   dateOfLastPromotion?: string | null;
   personnelActivities?: PersonnelActivity[];
   enlistmentRecords?: EnlistmentRecord[];
+  dutyStatus?:PersonnelDutyLogs|null;
 };

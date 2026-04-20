@@ -1,4 +1,5 @@
 import type { ActivityType } from "./ActivityType";
+import type { ApprovalProccess } from "./ApprovalProccess";
 import type { Personnel } from "./Personnel";
 
 export type PersonnelActivity = {
@@ -15,4 +16,8 @@ export type PersonnelActivity = {
   remarks?: string | null;
   days?: number | null;
   reason?: string | null;
+  isWarningSent?: boolean | null;
+  isFullyApproved?: boolean | null;
+  approvalProccessId?: number | null;
+  approvalProccess?: ApprovalProccess
 };

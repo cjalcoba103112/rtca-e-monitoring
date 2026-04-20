@@ -22,6 +22,7 @@ import { useAuth } from "../context/UserContext";
 import UserIndex from "../pages/user/UserIndex";
 import EteExplanationIndex from "../pages/ete-email-layout/EteExplanationIndex";
 import EteNotifyIndex from "../pages/ete-email-layout/EteNotifyIndex";
+import ApprovalProcessIndex from "../pages/approvalProcess/ApprovalProcessIndex";
 
 export default function MainRoute() {
   const {user} = useAuth()
@@ -48,6 +49,7 @@ export default function MainRoute() {
         <Route path="/ete-explanation/:token" element={<EteExplanationIndex />} />
          <Route path="/ete-notify/:token" element={<EteNotifyIndex />} />
         <Route path="/auth" element={<AuthPage />} />
+         <Route path="/test" element={< ApprovalProcessIndex/>} />
       </Routes>
     </Router>
   );

@@ -31,6 +31,9 @@ import imageUtility from "../../utils/imageUtility";
 import PersonnelActivitiesTable from "../leave-history/PersonnelActivitiesTable";
 import UserSaveModal from "../user/UserSaveModal";
 import type { Usertbl } from "../../@types/Usertbl";
+import PersonnelDutyStatusModal from "./PersonnelDutyStatusModal";
+import type { PersonnelDutyLogs } from "../../@types/personnelDutyLogs";
+import { getDutyStatusColor } from "../../utils/getDutyStatusColor";
 
 export type PersonnelForm = Omit<
   Personnel,
@@ -67,12 +70,19 @@ const PersonnelIndex: React.FC = () => {
     null,
   );
   const [isModalVisible, setIsModalVisible] = useState(false);
- const [filteredData, setFilteredData] = useState<Personnel[]>([]);
+  const [filteredData, setFilteredData] = useState<Personnel[]>([]);
   const [leaveHistoryModal, setLeaveHistoryModal] = useState<boolean>(false);
   const [form] = Form.useForm<PersonnelForm>();
   const [isUserModalVisible, setIsUserModalVisible] = useState(false);
   const [userForm] = Form.useForm<Usertbl>();
+  const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
+  const [statusForm] = Form.useForm();
 
+  const openStatusModal = (record: Personnel) => {
+    setSelectedPersonnel(record);
+    statusForm.setFieldsValue({ employmentStatus: record.employmentStatus });
+    setIsStatusModalVisible(true);
+  };
   const {
     data: personnelList,
     refetch,
@@ -87,12 +97,8 @@ const PersonnelIndex: React.FC = () => {
     },
     initialData: [],
   });
- 
 
-  const openHistoryModal = (record: Personnel) => {
-    setSelectedPersonnel(record);
-    setLeaveHistoryModal(true);
-  };
+
 
   const openModal = (personnel?: Personnel) => {
     if (personnel) {
@@ -122,6 +128,14 @@ const PersonnelIndex: React.FC = () => {
     refetch();
   };
 
+  const openHistoryModal = (record: Personnel) => {
+
+    setSelectedPersonnel(record);
+
+    setLeaveHistoryModal(true);
+
+  };
+
   const openUserModal = (personnel: Personnel) => {
     userForm.resetFields();
     userForm.setFieldsValue({
@@ -131,160 +145,302 @@ const PersonnelIndex: React.FC = () => {
     setIsUserModalVisible(true);
   };
 
+
   const columns: ColumnsType<Personnel> = [
+
     {
+
       title: "Nr",
+
       width: 45,
+
       render: (_, __, index) => index + 1,
-    },
-    {
-      title: "",
-      key: "profile",
-      dataIndex: "profile",
-      width: 120,
-      render: (value) => (
-        <div style={{ cursor: "pointer" }}>
-          <Image
-            width={80}
-            height={80}
-            style={{ objectFit: "cover", borderRadius: "4px" }}
-            src={imageUtility.getProfile(value)}
-            fallback="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
-            placeholder={
-              <div
-                style={{
-                  width: 80,
-                  height: 80,
-                  background: "#f5f5f5",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <UserOutlined style={{ fontSize: 24, color: "#bfbfbf" }} />
-              </div>
-            }
-            preview={{
-              mask: <div style={{ fontSize: 12 }}>View</div>, // Shows "View" text on hover
-            }}
-          />
-        </div>
-      ),
+
     },
 
     {
-      title: "Name",
-      dataIndex: "lastName",
-      key: "lastname",
-      ellipsis:true ,
-      render: (_, value: Personnel) => nameFormat(value),
+
+      title: "",
+
+      key: "profile",
+
+      dataIndex: "profile",
+
+      width: 120,
+
+      render: (value) => (
+
+        <div style={{ cursor: "pointer" }}>
+
+          <Image
+
+            width={80}
+
+            height={80}
+
+            style={{ objectFit: "cover", borderRadius: "4px" }}
+
+            src={imageUtility.getProfile(value)}
+
+            fallback="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
+
+            placeholder={
+
+              <div
+
+                style={{
+
+                  width: 80,
+
+                  height: 80,
+
+                  background: "#f5f5f5",
+
+                  display: "flex",
+
+                  alignItems: "center",
+
+                  justifyContent: "center",
+
+                }}
+
+              >
+
+                <UserOutlined style={{ fontSize: 24, color: "#bfbfbf" }} />
+
+              </div>
+
+            }
+
+            preview={{
+
+              mask: <div style={{ fontSize: 12 }}>View</div>, // Shows "View" text on hover
+
+            }}
+
+          />
+
+        </div>
+
+      ),
+
     },
+
+
+
     {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
+
+      title: "Name",
+
+      dataIndex: "lastName",
+
+      key: "lastname",
+
+      ellipsis: true,
+
+      render: (_, value: Personnel) => nameFormat(value),
+
     },
+
+    {
+
+      title: "Email",
+
+      dataIndex: "email",
+
+      key: "email",
+
+    },
+
     {
       title: "Duty Status",
-      dataIndex: "employmentStatus",
-      key: "employmentStatus",
-      render: (status: string | null) => {
-        if (!status) return null;
+      dataIndex: "dutyStatus",
+      key: "dutyStatus",
+      render: (duty: string | null, record: Personnel) => {
+        const status = duty ?? "active";
 
         let color = "default";
+        const lowerStatus = status?.toLowerCase();
+        if (lowerStatus === "active") color = "green";
+        else if (lowerStatus === "inactive") color = "orange";
+        else if (lowerStatus === "suspended") color = "red";
 
-        if (status.toLowerCase() === "active") {
-          color = "green";
-        } else if (status.toLowerCase() === "inactive") {
-          color = "orange";
-        } else if (status.toLowerCase() === "suspended") {
-          color = "red";
-        }
-
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
-      },
-    },
-    {
-      title: "Date Entered Service",
-      dataIndex: "dateEnteredService",
-      key: "dateEnteredService",
-      render: (value) => (value ? formatDateToMilitary(value) : ""),
-    },
-    {
-      title: "Date Enlisted/Commissioned",
-      dataIndex: "dateEnlisted",
-      key: "dateEnlisted",
-      render: (value) => (value ? formatDateToMilitary(value) : ""),
-    },
-    {
-      title: "Last Promotion",
-      dataIndex: "dateOfLastPromotion",
-      key: "dateOfLastPromotion",
-      render: (value) => (value ? formatDateToMilitary(value) : ""),
-    },
-    {
-      title: "Has Account",
-      key: "hasAccount",
-      width: 100,
-      align: "center",
-      // Filterable to quickly find people without accounts
-      filters: [
-        { text: "Yes", value: true },
-        { text: "No", value: false },
-      ],
-      onFilter: (value, record) => !!record.userId === value,
-      render: (_, record) => {
-        const hasAccount = !!record.userId || !!record.user;
         return (
-          <Tag color={hasAccount ? "blue" : "default"}>
-            {hasAccount ? "YES" : "NO"}
-          </Tag>
+          <Space>
+            <Tag color={getDutyStatusColor(status)}>{status?.toUpperCase()}</Tag>
+            <Tooltip title="Update Status">
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined style={{ fontSize: '12px', color: '#1890ff' }} />}
+                onClick={() => openStatusModal(record)}
+              />
+            </Tooltip>
+          </Space>
         );
       },
     },
+
     {
+
+      title: "Date Entered Service",
+
+      dataIndex: "dateEnteredService",
+
+      key: "dateEnteredService",
+
+      render: (value) => (value ? formatDateToMilitary(value) : ""),
+
+    },
+
+    {
+
+      title: "Date Enlisted/Commissioned",
+
+      dataIndex: "dateEnlisted",
+
+      key: "dateEnlisted",
+
+      render: (value) => (value ? formatDateToMilitary(value) : ""),
+
+    },
+
+    {
+
+      title: "Last Promotion",
+
+      dataIndex: "dateOfLastPromotion",
+
+      key: "dateOfLastPromotion",
+
+      render: (value) => (value ? formatDateToMilitary(value) : ""),
+
+    },
+
+    {
+
+      title: "Has Account",
+
+      key: "hasAccount",
+
+      width: 100,
+
+      align: "center",
+      filters: [
+
+        { text: "Yes", value: true },
+
+        { text: "No", value: false },
+
+      ],
+
+      onFilter: (value, record) => !!record.userId === value,
+
+      render: (_, record) => {
+
+        const hasAccount = !!record.userId || !!record.user;
+
+        return (
+
+          <Tag color={hasAccount ? "blue" : "default"}>
+
+            {hasAccount ? "YES" : "NO"}
+
+          </Tag>
+
+        );
+
+      },
+
+    },
+
+    {
+
       title: "Actions",
+
       key: "actions",
+
       fixed: "left",
+
       render: (_, record) => (
+
         <Space>
+
           <Tooltip title="View Leave Credits">
+
             <Button
+
               type="text"
+
               icon={<HistoryOutlined />}
+
               onClick={() => openHistoryModal(record)}
+
             />
-          </Tooltip>
-          {!record.userId && (
-            <Tooltip title="Create System Account">
-              <Button
-                type="text"
-                style={{ color: "#722ed1" }}
-                icon={<UserAddOutlined />}
-                onClick={() => openUserModal(record)}
-              />
-            </Tooltip>
-          )}
-          <Tooltip title="Edit">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => openModal(record)}
-            />
+
           </Tooltip>
 
-          <Tooltip title="Delete">
-            <Popconfirm
-              title="Are you sure to delete?"
-              onConfirm={() => handleDelete(record?.personnelId ?? 0)}
-            >
-              <Button type="text" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
+          {!record.userId && (
+
+            <Tooltip title="Create System Account">
+
+              <Button
+
+                type="text"
+
+                style={{ color: "#722ed1" }}
+
+                icon={<UserAddOutlined />}
+
+                onClick={() => openUserModal(record)}
+
+              />
+
+            </Tooltip>
+
+          )}
+
+          <Tooltip title="Edit">
+
+            <Button
+
+              type="text"
+
+              icon={<EditOutlined />}
+
+              onClick={() => openModal(record)}
+
+            />
+
           </Tooltip>
+
+
+
+          <Tooltip title="Delete">
+
+            <Popconfirm
+
+              title="Are you sure to delete?"
+
+              onConfirm={() => handleDelete(record?.personnelId ?? 0)}
+
+            >
+
+              <Button type="text" danger icon={<DeleteOutlined />} />
+
+            </Popconfirm>
+
+          </Tooltip>
+
         </Space>
+
       ),
+
     },
+
   ];
+
+
 
   return (
     <div>
@@ -334,8 +490,8 @@ const PersonnelIndex: React.FC = () => {
         form={userForm}
         isModalVisible={isUserModalVisible}
         setIsModalVisible={setIsUserModalVisible}
-        selectedUser={null} 
-        onAfterSave={()=>refetch()} 
+        selectedUser={null}
+        onAfterSave={() => refetch()}
       />
       <CreditsModal
         open={leaveHistoryModal}
@@ -347,7 +503,23 @@ const PersonnelIndex: React.FC = () => {
         setIsModalVisible={setIsModalVisible}
         selectedPersonnel={selectedPersonnel}
         isModalVisible={isModalVisible}
-        onAfterSave={()=>refetch()} 
+        onAfterSave={() => refetch()}
+      />
+
+      <PersonnelDutyStatusModal
+        form={statusForm}
+        isModalVisible={isStatusModalVisible}
+        setIsModalVisible={setIsStatusModalVisible}
+        selectedPersonnel={selectedPersonnel}
+        onAfterSave={() => refetch()}
+        onUpdate={async (values) => {
+          if (selectedPersonnel?.personnelId) {
+            // await personelService.update(selectedPersonnel.personnelId, {
+            //   ...selectedPersonnel,
+            //   employmentStatus: values.employmentStatus,
+            // });
+          }
+        }}
       />
     </div>
   );

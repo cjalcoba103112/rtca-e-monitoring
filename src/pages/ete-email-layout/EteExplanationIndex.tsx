@@ -99,7 +99,7 @@ export default function EteExplanationIndex({
     message.info("Downloading template...");
   };
 
-  const isCritical = (explanation?.remainingDays ?? 0) < 330;
+  const isCritical = (explanation?.remainingDays ?? 0) < 365;
 
   if (isFetching) {
     return (
@@ -120,7 +120,7 @@ export default function EteExplanationIndex({
           {!selectedEte && (
             <Alert
               message="Immediate Action Required"
-              description={`You are currently ${formatDaysToYMD(explanation?.remainingDays)} before your ETE. Administrative regulations require document finalization 11 months prior.`}
+              description={`You are currently ${formatDaysToYMD(explanation?.remainingDays)} before your ETE. Administrative regulations require document finalization 1 year prior.`}
               type="error"
               showIcon
               icon={<WarningOutlined />}
@@ -255,7 +255,7 @@ export default function EteExplanationIndex({
 
                   <div className="flex justify-between items-center">
                     <Text type="secondary" italic className="text-xs">
-                      Requirement: 11 months prior to ETE.
+                      Requirement: 1 year prior to ETE.
                     </Text>
                     <Button
                       type="primary"
@@ -282,7 +282,7 @@ export default function EteExplanationIndex({
                     <iframe
                       src={`${previewUrl}`}
                       title="PDF Preview"
-                      className="w-full h-[600px] border rounded shadow-inner"
+                      className="w-full h-[900px] border rounded shadow-inner"
                     />
                   </div>
                 ) : (
