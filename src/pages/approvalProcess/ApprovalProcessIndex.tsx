@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Table, Steps, Tag, Button, Drawer, Form, Input, Space, Card, Typography, message, Divider } from 'antd';
-import { EyeOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { Table, Steps,  Button, Space, Card, Typography } from 'antd';
+import { EyeOutlined,  } from '@ant-design/icons';
 import type { PersonnelActivity } from '../../@types/PersonnelActivity';
 import ApprovalModal from './ApprovalModal';
 
@@ -25,8 +25,6 @@ const mockSelectedActivity:PersonnelActivity = {
     },
     departmentId: null,
     department: null,
-    userId: null,
-    user: undefined,
     dutyStatus: null,
     employmentStatus: "Active",
     dateEnlisted: "2023-03-06T00:00:00",
@@ -59,9 +57,9 @@ const mockSelectedActivity:PersonnelActivity = {
 };
 
 const ApprovalProcessIndex: React.FC = () => {
-    const [open, setOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<PersonnelActivity|null>(null);
-    const [form] = Form.useForm();
+    const [__, setOpen] = useState(false);
+    const [_, setSelectedRecord] = useState<PersonnelActivity|null>(null);
+    // const [form] = Form.useForm();
 
     // 1. Open side drawer and load record data
     const showDrawer = (record: any) => {
@@ -69,21 +67,9 @@ const ApprovalProcessIndex: React.FC = () => {
         setOpen(true);
     };
 
-    const onClose = () => {
-        setOpen(false);
-        form.resetFields();
-    };
+    
 
-    // 2. Handle Submit (CMAA Stage)
-    const handleApproval = (isApprove: boolean) => {
-        const remarks = form.getFieldValue('remarks');
-
-        // Here you would call your API: 
-        // PUT /api/ApprovalProcess/{id} { CmaaIsApprove: isApprove, CmaaRemarks: remarks }
-
-        message.success(`Request ${isApprove ? 'Approved' : 'Rejected'} successfully`);
-        onClose();
-    };
+    
 
     const columns = [
         {
@@ -134,7 +120,7 @@ const ApprovalProcessIndex: React.FC = () => {
                 selectedActivity={mockSelectedActivity}
                 isModalVisible={true}
                 onAfterSave={() => { } } 
-                currentStage={1} />
+                />
         </Card>
     );
 };

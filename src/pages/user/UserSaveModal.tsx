@@ -1,4 +1,5 @@
-import { Form, Input, Modal, message, Typography, Divider, Alert } from "antd";
+import React, { useEffect, useState } from "react";
+import { Form, Input, Modal, message, Typography, Alert, Select, Image, Space } from "antd";
 import type { Usertbl } from "../../@types/Usertbl";
 import type { FormInstance } from "antd";
 import userService from "../../services/userService";
@@ -6,12 +7,15 @@ import PersonnelSelectComponent from "../../componets/PersonnelSelectComponent";
 import { useQuery } from "@tanstack/react-query";
 import personelService from "../../services/personelService";
 import nameFormat from "../../utils/nameFormat";
+import roleService from "../../services/roleService";
+import type { Role } from "../../@types/Role";
+import imageUtility from "../../utils/imageUtility";
+import { UserOutlined, MailOutlined, IdcardOutlined } from "@ant-design/icons";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 type SaveModalProps = {
-    
-  form: FormInstance<Usertbl & { personnelId?: number }>;
+  form: FormInstance<Usertbl>;
   setIsModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
   selectedUser: Usertbl | null;
   isModalVisible: boolean;
@@ -25,91 +29,174 @@ export default function UserSaveModal({
   setIsModalVisible,
   onAfterSave,
 }: SaveModalProps) {
+  const [loading, setLoading] = useState(false);
+
+  // Sync form values when selectedUser changes (Edit Mode)
+  useEffect(() => {
+    if (isModalVisible && selectedUser) {
+      form.setFieldsValue({
+        userName: selectedUser.userName,
+        email: selectedUser.personnel?.email,
+        roleId: selectedUser.roleId,
+        personnelId: selectedUser.personnelId,
+      });
+    } else if (!isModalVisible) {
+      form.resetFields();
+    }
+  }, [selectedUser, isModalVisible, form]);
+
   const { data: personnelList = [] } = useQuery({
     queryKey: ["personnel"],
     queryFn: async () => await personelService.getAll(),
     initialData: [],
+    enabled: isModalVisible,
   });
 
-  // Watch the personnelId to show details of the selected person
+  const { data: roles, isLoading: rolesLoading } = useQuery({
+    queryKey: ["userTypes"],
+    queryFn: async () => await roleService.getAll(),
+    initialData: [],
+    enabled: isModalVisible,
+  });
+
   const personnelId = Form.useWatch("personnelId", form);
   const selectedPerson = personnelList.find((p) => p.personnelId === personnelId);
+
+  const displayPerson = selectedUser?.personnel || selectedPerson;
 
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      
-      if (selectedUser && selectedUser.userId) {
-        await userService.update({ ...values, userId: selectedUser.userId });
+      setLoading(true);
+
+      if (selectedUser?.userId) {
+        await userService.update({...selectedUser, ...values, userId: selectedUser.userId });
         message.success("User updated successfully");
       } else {
-        // Sending values without manual password; backend handles auto-generation
         await userService.add(values);
         message.success("User created. Credentials sent to email.");
       }
-      
+
       setIsModalVisible(false);
       onAfterSave();
     } catch (err) {
-      console.log("Validation failed:", err);
+      console.error("Validation failed:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handlePersonnelChange = (id: number | null) => {
-    if (id) {
-      const person = personnelList.find(p => p.personnelId === id);
-      form.setFieldsValue({ email: person?.email || undefined });
-    } else {
-      form.setFieldsValue({ email: undefined });
-    }
+    const person = personnelList.find((p) => p.personnelId === id);
+    form.setFieldsValue({
+      email: person?.email || undefined,
+      userName: person?.email?.split("@")[0] || undefined,
+    });
   };
 
   return (
     <Modal
-      title={selectedUser ? "Edit User Account" : "Create User Account"}
+      title={selectedUser ? "Edit User Account" : "Create New User Account"}
       open={isModalVisible}
       onOk={handleOk}
       onCancel={() => setIsModalVisible(false)}
       destroyOnClose
-      okText={selectedUser ? "Update" : "Create Account"}
+      okText={selectedUser ? "Save Changes" : "Create Account"}
+      confirmLoading={loading}
+      width={520}
     >
+      {/* Profile Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "16px",
+          padding: "16px",
+          background: "#f8f9fa",
+          borderRadius: "12px",
+          marginBottom: "24px",
+          border: "1px solid #f0f0f0",
+        }}
+      >
+        <Image
+          width={64}
+          height={64}
+          style={{ objectFit: "cover", borderRadius: "50%" }}
+          src={imageUtility.getProfile(displayPerson?.profile)}
+          fallback="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
+          preview={!!displayPerson}
+        />
+        <div>
+          <Title level={5} style={{ margin: 0 }}>
+            {displayPerson ? nameFormat(displayPerson) : "No Personnel Selected"}
+          </Title>
+          {displayPerson ? (
+            <Space direction="vertical" size={0}>
+              <Text type="secondary" style={{ fontSize: "12px" }}>
+                <IdcardOutlined /> {displayPerson.serialNumber || "No SN"}
+              </Text>
+              <Text type="secondary" style={{ fontSize: "12px" }}>
+                <MailOutlined /> {displayPerson.email || "No Email"}
+              </Text>
+            </Space>
+          ) : (
+            <Text type="secondary">Link a personnel record to continue.</Text>
+          )}
+        </div>
+      </div>
+
       <Form form={form} layout="vertical">
         {!selectedUser && (
-          <PersonnelSelectComponent 
-            name="personnelId" 
-            label="Select Personnel" 
-            onChange={handlePersonnelChange} 
-          />
-        )}
-
-        {selectedPerson && (
-          <div style={{ marginBottom: 16, padding: '12px', background: '#fafafa', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
-            <Text type="secondary">Personnel Details:</Text>
-            <div style={{ marginTop: 4 }}>
-              <Text strong>{nameFormat(selectedPerson)}</Text> <br />
-              <Text type="secondary">SN: {selectedPerson.serialNumber}</Text>
-            </div>
+          <div style={{ marginBottom: "12px" }}>
+            <PersonnelSelectComponent
+              name="personnelId"
+              label="Personnel Reference"
+              onChange={handlePersonnelChange}
+            />
           </div>
         )}
+
+        <div className="grid grid-cols-2 gap-x-4">
+          <Form.Item
+            name="userName"
+            label="Username"
+            rules={[{ required: true, message: "Required" }]}
+          >
+            <Input prefix={<UserOutlined className="text-gray-400" />} />
+          </Form.Item>
+
+          <Form.Item
+            name="roleId"
+            label="Role"
+            rules={[{ required: true, message: "Required" }]}
+          >
+            <Select
+              loading={rolesLoading}
+              options={roles?.map((role: Role) => ({
+                label: role.roleName,
+                value: role.roleId,
+              }))}
+            />
+          </Form.Item>
+        </div>
 
         <Form.Item
           name="email"
           label="Account Email"
-          extra="This email will be used for login and password recovery."
-          rules={[
-            { required: true, message: "Email is required" },
-            { type: "email", message: "Invalid email format" }
-          ]}
+          extra={!selectedUser && "This is where login credentials will be sent."}
+         
         >
-          <Input readOnly={!!selectedPerson?.email} placeholder="Select personnel to load email" />
+          <Input 
+            prefix={<MailOutlined className="text-gray-400" />} 
+            readOnly={!!selectedPerson || !!selectedUser} 
+            variant={selectedPerson || selectedUser ? "filled" : "outlined"}
+          />
         </Form.Item>
-
-        <Divider />
 
         {!selectedUser && (
           <Alert
-            message="Auto-generated Password"
-            description="For security, the system will generate a random password and send it directly to the email address above once the account is created."
+            message="Credentials"
+            description="The system will email an auto-generated password to the user."
             type="info"
             showIcon
           />

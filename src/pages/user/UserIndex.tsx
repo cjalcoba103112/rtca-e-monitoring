@@ -5,7 +5,9 @@ import { UserOutlined } from "@ant-design/icons";
 import type { Usertbl } from "../../@types/Usertbl";
 import { useQuery } from "@tanstack/react-query";
 import userService from "../../services/userService";
-import UserSaveModal from "./UserSaveModal"; 
+import UserSaveModal from "./UserSaveModal";
+import imageUtility from "../../utils/imageUtility";
+import nameFormat from "../../utils/nameFormat";
 
 const UserIndex: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<Usertbl | null>(null);
@@ -35,10 +37,10 @@ const UserIndex: React.FC = () => {
 
   const handleDelete = async (userId?: number) => {
     try {
-        await userService.delete(userId);
-        refetch();
+      await userService.delete(userId);
+      refetch();
     } catch (error) {
-        console.error("Failed to delete user", error);
+      console.error("Failed to delete user", error);
     }
   };
 
@@ -46,41 +48,50 @@ const UserIndex: React.FC = () => {
     {
       title: "Profile",
       key: "profile",
-      width:100,
-      render: () => (
-       <div style={{ cursor: 'pointer' }}>
-      <Image
-        width={80}
-        height={80}
-        style={{ objectFit: 'cover', borderRadius: '4px' }}
-        src={""}
-        fallback="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
-        placeholder={
-          <div style={{ width: 80, height: 80, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <UserOutlined style={{ fontSize: 24, color: '#bfbfbf' }} />
-          </div>
-        }
-        preview={{
-          mask: <div style={{ fontSize: 12 }}>View</div>, // Shows "View" text on hover
-        }}
-      />
-    </div>
+      width: 100,
+      render: (_, record) => (
+        <div style={{ cursor: 'pointer' }}>
+          <Image
+            width={80}
+            height={80}
+            style={{ objectFit: 'cover', borderRadius: '4px' }}
+            src={imageUtility.getProfile(record?.personnel?.profile)}
+            fallback="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
+            placeholder={
+              <div style={{ width: 80, height: 80, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <UserOutlined style={{ fontSize: 24, color: '#bfbfbf' }} />
+              </div>
+            }
+            preview={{
+              mask: <div style={{ fontSize: 12 }}>View</div>, // Shows "View" text on hover
+            }}
+          />
+        </div>
       ),
     },
-    { 
-      title: "Email", 
-      dataIndex: "email", 
-      key: "email" 
-    },
-    // { 
-    //   title: "Personnel Name", 
-    //   key: "fullName",
-    //   render: (_, record) => {
-    //     const p = record.personnel;
-    //     return p ? nameFormat(p) : "N/A";
-    //   }
-    // },
     
+    {
+      title: "Name",
+      key: "",
+      render: (_, record) => nameFormat(record.personnel) ?? record.fullName
+
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+    },
+     {
+      title: "Username",
+      key: "userName",
+      dataIndex:"userName"
+    },
+    {
+      title: "Role",
+      key: "role",
+      render: (_, record) => record.role?.roleName
+    },
+
     {
       title: "Actions",
       key: "actions",

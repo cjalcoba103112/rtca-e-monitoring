@@ -30,6 +30,12 @@ export const personelService = {
     );
     return response.data;
   },
+   getAllOnly: async (): Promise<Personnel[]> => {
+    const response = await axiosInstance.get<Personnel[]>(
+      subdirectory + "/list/only",
+    );
+    return response.data;
+  },
   getAll: async (): Promise<Personnel[]> => {
     const response = await axiosInstance.get<Personnel[]>(
       subdirectory + "/list",

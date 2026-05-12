@@ -1,5 +1,5 @@
 // utils/date.ts
-export function convertUtcToPhDateShort(utcDateString?: string): string {
+export function convertUtcToPhDateShort(utcDateString?: string | null): string {
   if (!utcDateString) return "";
 
  if (!utcDateString) return "";

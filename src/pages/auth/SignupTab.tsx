@@ -35,7 +35,7 @@ export default function SignupTab() {
 
       setLoading(true);
       // Logic: Backend generates 6-digit code, saves to OtpVerifications, sends email
-       await authService.sendOtp(email);
+      await authService.sendOtp(email);
       message.success("OTP sent to your email!");
       setIsOtpSent(true);
     } catch (error: any) {
@@ -102,13 +102,13 @@ export default function SignupTab() {
             rules={[{ required: true }]}
           >
             <Input
-              style={{ textTransform: selectedRank?.rankCategory?.casing }}
+              style={{ textTransform: selectedRank?.rankCategory?.casing ?? "capitalize" }}
               placeholder="First Name"
             />
           </Form.Item>
           <Form.Item name="middleName" label="Middle Name">
             <Input
-              style={{ textTransform: selectedRank?.rankCategory?.casing }}
+              style={{ textTransform: selectedRank?.rankCategory?.casing ?? "capitalize" }}
               placeholder="Middle Name"
             />
           </Form.Item>
@@ -118,7 +118,7 @@ export default function SignupTab() {
             rules={[{ required: true }]}
           >
             <Input
-              style={{ textTransform: selectedRank?.rankCategory?.casing }}
+              style={{ textTransform: selectedRank?.rankCategory?.casing ?? "capitalize" }}
               placeholder="Last Name"
             />
           </Form.Item>

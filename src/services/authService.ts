@@ -4,10 +4,15 @@ import type { Usertbl } from "../@types/Usertbl";
 import axiosInstance from "./_axiosInstance";
 
 const subdirectory: string = "/auth";
+ type LoginResponse ={
+  user :Usertbl | null,
+  token?:string
+ }
+
 
 export const authService = {
-    login: async (login:Login): Promise<Usertbl> => {
-      const response = await axiosInstance.post<Usertbl>(subdirectory + "/login",login);
+    login: async (login:Login): Promise<LoginResponse> => {
+      const response = await axiosInstance.post<LoginResponse>(subdirectory + "/login",login);
       return response.data;
     },
 
@@ -21,6 +26,11 @@ export const authService = {
 
   sendOtp: async (email: string): Promise<void> => {
     await axiosInstance.post(subdirectory + "/send-otp", { email });
+  },
+
+   getbyChangePasswordToken: async (token: string):Promise<Usertbl> => {
+    const {data} = await axiosInstance.get<Usertbl>(subdirectory + "/token/" + token);
+    return data;
   },
 
   // verifyOtp: async (email: string, otpCode: string): Promise<boolean> => {

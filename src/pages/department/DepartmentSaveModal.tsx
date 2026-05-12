@@ -2,6 +2,7 @@ import { Form, Input, Modal } from "antd";
 import type { Department } from "../../@types/Department";
 import type { FormInstance } from "antd";
 import departmentService from "../../services/departmentService";
+import PersonnelSelectComponent from "../../componets/PersonnelSelectComponent";
 
 type SaveModalProps = {
   form: FormInstance<Department>;
@@ -58,8 +59,8 @@ export default function DepartmentSaveModal({
         >
           <Input />
         </Form.Item>
+        <PersonnelSelectComponent name={"oicId"} label={"OIC"} />
 
-       
       </Form>
     </Modal>
   );

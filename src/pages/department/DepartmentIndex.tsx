@@ -12,6 +12,7 @@ import type { Department } from "../../@types/Department";
 import { useQuery } from "@tanstack/react-query";
 import departmentService from "../../services/departmentService";
 import DepartmentSaveModal from "./DepartmentSaveModal";
+import nameFormat from "../../utils/nameFormat";
 
 const DepartmentIndex: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] =
@@ -50,6 +51,12 @@ const DepartmentIndex: React.FC = () => {
       title: "Name",
       dataIndex: "departmentName",
       key: "departmentName",
+    },
+      {
+      title: "OIC",
+      dataIndex: "oic",
+      key: "oic",
+      render:(value) => nameFormat(value)
     },
     {
       title: "Actions",

@@ -8,14 +8,14 @@ import { useState } from 'react';
 import { UserContext } from './context/UserContext';
 function App() {
   const queryClient = new QueryClient()
-    const [user,setUser]= useState<Usertbl|null>(null);
-    
+  const [user, setUser] = useState<Usertbl | null>(null);
+
   return (
     <QueryClientProvider client={queryClient}>
-     <ConfigProvider
+      <ConfigProvider
         theme={{
           token: {
-            colorPrimary: '#044989', 
+            colorPrimary: '#044989',
             borderRadius: 8,
             fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
             colorInfo: '#1677ff',
@@ -32,10 +32,10 @@ function App() {
           }
         }}
       >
-        <UserContext.Provider value={{user,setUser}}>
- <MainRoute />
+        <UserContext.Provider value={{ user, setUser }}>
+          <MainRoute />
         </UserContext.Provider>
-       
+
       </ConfigProvider>
 
     </QueryClientProvider>

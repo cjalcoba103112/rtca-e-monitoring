@@ -4,6 +4,30 @@ import axiosInstance from "./_axiosInstance";
 const subdirectory: string = "/personnel-activity";
 
 export const personnelActivityService = {
+
+
+  getMyPendingApprovals: async (roleId: number): Promise<PersonnelActivity[]> => {
+    const response = await axiosInstance.get<PersonnelActivity[]>(
+      subdirectory + "/pending-approvals",
+      { params: { roleId } }
+    );
+    return response.data;
+  },
+
+
+  getPendingActivities: async (currentStage: number, oicPersonnelId: number): Promise<PersonnelActivity[]> => {
+    const response = await axiosInstance.get<PersonnelActivity[]>(
+      subdirectory + "/pending",
+      {
+        params: {
+          currentStage,
+          oicPersonnelId
+        }
+      }
+    );
+    return response.data;
+  },
+
   approve: async (
     personnelActivityId: number,
     remarks?: string,

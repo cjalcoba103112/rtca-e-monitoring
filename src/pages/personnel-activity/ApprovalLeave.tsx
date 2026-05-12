@@ -5,315 +5,282 @@ import {
   Table,
   Button,
   Space,
-  Form,
   Tag,
-  Input,
+  Typography,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import type { PersonnelActivity } from "../../@types/PersonnelActivity";
 import { useQuery } from "@tanstack/react-query";
-import personnelActivityService from "../../services/personnelActivityService";
+import { SearchOutlined, InfoCircleOutlined, HistoryOutlined } from "@ant-design/icons";
+
+// Types & Services
+import type { PersonnelActivity } from "../../@types/PersonnelActivity";
 import type { Personnel } from "../../@types/Personnel";
 import type { ActivityType } from "../../@types/ActivityType";
+import personnelActivityService from "../../services/personnelActivityService";
+import activityTypeService from "../../services/activityTypeService";
+
+// Utilities & Components
 import nameFormat from "../../utils/nameFormat";
 import { convertUtcToPhDateShort } from "../../utils/convertUtcToPhDateShort";
 import DebounceInput from "../../componets/DebounceInput";
-import PersonnelActivityApprovalModal from "./PersonnelActivityApprovalModal";
-import activityTypeService from "../../services/activityTypeService";
-import { SearchOutlined } from "@ant-design/icons";
 import ApprovalModal from "../approvalProcess/ApprovalModal";
+import { useAuth } from "../../context/UserContext";
+import workflowStepsService from "../../services/workflowStepsService";
 
 dayjs.extend(isBetween);
 
-export const emptyValues: PersonnelActivity = {
-  personnelActivityId: null,
-  personnelId: null,
-  personnel: null,
-  activityTypeId: null,
-  activityType: null,
-  title: null,
-  startDate: null,
-  endDate: null,
-  status: "Pending Approval",
-  result: null,
-  remarks: null,
-};
-
 const ApprovalLeave: React.FC = () => {
-  const [selectedActivity, setSelectedActivity] =
-    useState<PersonnelActivity | null>(null);
+  const { Text } = Typography;
+
+  const { user } = useAuth();
+
+
+
+  // --- States ---
+  const [selectedActivity, setSelectedActivity] = useState<PersonnelActivity | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [viewOnly, setViewOnly] = useState(false);
   const [filteredData, setFilteredData] = useState<PersonnelActivity[]>([]);
-  const {
-    data: activities,
-    refetch,
-    isFetching,
-  } = useQuery({
-    queryKey: ["personnelActivities"],
-    queryFn: async () => await personnelActivityService.getAll(),
-    initialData: [],
-  });
+
+  // --- Queries ---
+
   const { data: activityTypes } = useQuery({
     queryKey: ["activityTypes"],
     queryFn: async () => await activityTypeService.getAll(),
     initialData: [],
   });
-  const [form] = Form.useForm();
 
-  const openModal = (activity?: PersonnelActivity) => {
-    if (activity) {
-      form.setFieldsValue({
-        ...activity,
-        startDate: activity.startDate ? dayjs(activity.startDate) : undefined,
-        endDate: activity.endDate ? dayjs(activity.endDate) : undefined,
-      });
-      setSelectedActivity(activity);
-    } else {
-      form.setFieldsValue(emptyValues);
-      setSelectedActivity(null);
-    }
+
+  const { data: workflowStep } = useQuery({
+    queryKey: ["workflowSteps", user],
+    queryFn: async () => await workflowStepsService.getByRoleId(user?.roleId ?? 0),
+
+  });
+
+  const {
+    data: activities,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["personnelActivities", workflowStep],
+    queryFn: async () => await personnelActivityService.getPendingActivities(workflowStep?.stepNumber ?? 0, user?.personnel?.personnelId??0),
+    initialData: [],
+  });
+
+  const {
+    data: activitiesAll,
+    refetch: referetchAll,
+    isFetching: isFetchingAll,
+  } = useQuery({
+    queryKey: ["personnelActivitiesAll"],
+    queryFn: async () => await personnelActivityService.getAll(),
+    initialData: [],
+  });
+
+
+  // --- Handlers ---
+  const openModal = (activity: PersonnelActivity, isViewMode: boolean) => {
+    setSelectedActivity(activity);
+    setViewOnly(isViewMode);
     setIsModalVisible(true);
   };
 
-  //   const handleDelete = async (id?: number | null) => {
-  //     await personnelActivityService.delete(id);
-  //     refetch();
-  //   };
-
-  // ------------------- Suspend Action -------------------
-
-
-  const columns: ColumnsType<PersonnelActivity> = [
+  // --- Table Columns ---
+  const columns = (isView: boolean): ColumnsType<PersonnelActivity> => [
     {
-        title: "Personnel",
-        dataIndex: "personnel",
-        key: "personnel",
-     
-        render: (value: Personnel) => nameFormat(value),
-        // --- SEARCH LOGIC FOR NAME ---
-        filterDropdown: ({
-          setSelectedKeys,
-          selectedKeys,
-          confirm,
-          clearFilters,
-        }) => (
-          <div style={{ padding: 8 }}>
-            <Input
-              placeholder="Search Personnel"
-              value={selectedKeys[0]}
-              onChange={(e) =>
-                setSelectedKeys(e.target.value ? [e.target.value] : [])
-              }
-              onPressEnter={() => confirm()}
-              style={{ marginBottom: 8, display: "block" }}
-            />
-            <Space>
-              <Button
-                type="primary"
-                onClick={() => confirm()}
-                icon={<SearchOutlined />}
-                size="small"
-                style={{ width: 90 }}
-              >
-                Search
-              </Button>
-              <Button
-                onClick={() => clearFilters && clearFilters()}
-                size="small"
-                style={{ width: 90 }}
-              >
-                Reset
-              </Button>
-            </Space>
-          </div>
-        ),
-        filterIcon: (filtered: boolean) => (
-          <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
-        ),
-        onFilter: (value, record) =>
-          nameFormat(record.personnel)
-            .toLowerCase()
-            .includes((value as string).toLowerCase()),
-      },
-      {
-        title: "Activity Type",
-        dataIndex: "activityType",
-        key: "activityType",
-        width: 150,
-        render: (value: ActivityType) => value.activityTypeName,
-        filters:
-          activityTypes?.map((c) => ({
-            text: c.activityTypeName || "Unknown",
-  
-            value: c.activityTypeName ?? "",
-          })) ?? [],
-  
-        onFilter: (value, record) =>
-          record?.activityType?.activityTypeName?.includes(value as string) ??
-          true,
-      },
-      {
-        title: "Title",
-        dataIndex: "title",
-        key: "title",
-      },
-      {
-        title: "Start Date",
-        dataIndex: "startDate",
-        key: "startDate",
-        align: "center",
-        width: 130,
-        sorter: (a, b) => dayjs(a.startDate).unix() - dayjs(b.startDate).unix(),
-        render: (date) => convertUtcToPhDateShort(date),
-      },
-      {
-        title: "End Date",
-        dataIndex: "endDate",
-        key: "endDate",
-        align: "center",
-        width: 130,
-        sorter: (a, b) => dayjs(a.endDate).unix() - dayjs(b.endDate).unix(),
-        render: (date) => convertUtcToPhDateShort(date),
-      },
+      title: "Personnel",
+      dataIndex: "personnel",
+      key: "personnel",
+      render: (value: Personnel) => nameFormat(value),
+    },
+    {
+      title: "Activity Type",
+      dataIndex: "activityType",
+      key: "activityType",
+      width: 150,
+      render: (value: ActivityType) => value?.activityTypeName,
+      filters: activityTypes?.map((c) => ({
+        text: c.activityTypeName || "Unknown",
+        value: c.activityTypeName ?? "",
+      })) ?? [],
+      onFilter: (value, record) =>
+        record?.activityType?.activityTypeName?.includes(value as string) ?? true,
+    },
+    {
+      title: "Title",
+      dataIndex: "title",
+      key: "title",
+    },
+    {
+      title: "Start Date",
+      dataIndex: "startDate",
+      key: "startDate",
+      align: "center",
+      width: 120,
+      render: (date) => convertUtcToPhDateShort(date),
+    },
+    {
+      title: "End Date",
+      dataIndex: "endDate",
+      key: "endDate",
+      align: "center",
+      width: 120,
+      render: (date) => convertUtcToPhDateShort(date),
+    },
     {
       title: "Day/s",
-      dataIndex: "days",
       key: "days",
+      dataIndex: "days"
+    },
+    {
+      title: "Approval Stage",
+      key: "stage",
       align: "center",
       width: 130,
-     
+      render: (_, record) => {
+        if (record.status !== "Pending Approval") return <Text type="secondary">-</Text>;
+
+        const stage = record.approvalProccess?.currentStage || 1;
+        const isOfficer = record.personnel?.rank?.rankCategory?.name === "Officer";
+
+        // Normalize stage number for display based on logic in ApprovalTrail
+        const displayStage = isOfficer ? (stage > 2 ? stage - 2 : 1) : stage;
+
+        return (
+          <Tag color="blue" className="rounded-full border-blue-200">
+            Stage {displayStage}
+          </Tag>
+        );
+      },
     },
     {
       title: "Status",
       key: "status",
+      width: 140,
       render: (_, record) => {
         const today = dayjs().startOf("day");
-        const start = record.startDate
-          ? dayjs(record.startDate).startOf("day")
-          : null;
-        const end = record.endDate
-          ? dayjs(record.endDate).startOf("day")
-          : null;
+        const start = record.startDate ? dayjs(record.startDate).startOf("day") : null;
+        const end = record.endDate ? dayjs(record.endDate).startOf("day") : null;
 
-        let statusText = "";
-        let color = "";
+        let statusText = record.status || "Scheduled";
+        let color = "gold";
 
-        switch (true) {
-          case record.status === "Pending Approval":
-            statusText = "Pending Approval";
-            color = "gold";
-            break;
-
-             case record.status === "Declined":
-            statusText = "Declined";
-            color = "red";
-            break;
-
-          case record.status === "Suspended":
-            statusText = "Suspended";
-            color = "red";
-            break;
-
-          case start &&
-            end &&
-            (today.isSame(start, "day") ||
-              today.isSame(end, "day") ||
-              (today.isAfter(start, "day") && today.isBefore(end, "day"))):
-            statusText = "Ongoing";
-            color = "blue";
-            break;
-
-          case end && today.isAfter(end, "day"):
-            statusText = "Inactive";
-            color = "default";
-            break;
-
-          default:
-            statusText = "Scheduled";
-            color = "gold";
-            break;
+        if (record.status === "Declined" || record.status === "Suspended") {
+          color = "red";
+        } else if (record.status === "Pending Approval") {
+          color = "gold";
+        }
+        else if (record.status === "Appeal") {
+          color = "cyan";
+        }
+        else if (start && end && today.isBetween(start, end, "day", "[]")) {
+          statusText = "Ongoing";
+          color = "blue";
+        } else if (end && today.isAfter(end, "day")) {
+          statusText = "Inactive";
+          color = "default";
         }
 
         return <Tag color={color}>{statusText}</Tag>;
       },
     },
-    { title: "Remarks", dataIndex: "remarks", key: "remarks" },
     {
       title: "Actions",
       key: "actions",
+      fixed: "right",
+      width: 100,
       render: (_, record) => (
         <Space>
-          {record.status == "Pending Approval" && (
-            <>
-              <Button type="link" onClick={() => openModal(record)}>
-                View
-              </Button>
-            </>
+          {(record.status === "Pending Approval" || record.status === "Appeal") && !isView ? (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => openModal(record, false)}
+            >
+              Process
+            </Button>
+          ) : (
+            <Button
+              size="small"
+              icon={<SearchOutlined />}
+              onClick={() => openModal(record, true)}
+            >
+              View
+            </Button>
           )}
         </Space>
       ),
     },
   ];
 
+  // --- Filtering Logic ---
+  const handleSearch = (value: string) => {
+    const keyword = value.toLowerCase().trim();
+    if (!keyword) {
+      setFilteredData([]);
+      return;
+    }
+    const result = activities.filter((item) =>
+      nameFormat(item.personnel || {}).toLowerCase().includes(keyword)
+    );
+    setFilteredData(result);
+  };
+
+  const dataSource = filteredData.length > 0 ? filteredData : activities;
+
   return (
-    <div>
-      <div className="flex justify-between">
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-6">
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          Personnel Activity Approvals
+        </Typography.Title>
         <DebounceInput
-          placeholder="Search Name..."
-          style={{ width: 250 }}
-          onChange={(value) => {
-            const keyword = value.toLowerCase().trim();
-
-            if (!keyword) {
-              setFilteredData(activities);
-              return;
-            }
-
-            const result = activities.filter((item) => {
-              const name = nameFormat(item.personnel || {}).toLowerCase();
-              return name.includes(keyword);
-            });
-
-            setFilteredData(result);
-          }}
+          placeholder="Search by personnel name..."
+          style={{ width: 300 }}
+          onChange={handleSearch}
         />
       </div>
 
       <Table
-        title={() => "Pending Approvals"}
-        scroll={{ x: 1000 }}
+        title={() => (
+          <Space className="text-amber-600 font-bold">
+            <InfoCircleOutlined />
+            <span>PENDING FOR REVIEW</span>
+          </Space>
+        )}
+        scroll={{ x: 1200 }}
         size="small"
-        columns={columns}
-        dataSource={
-          filteredData.length
-            ? filteredData.filter((c) => c.status == "Pending Approval")
-            : activities.filter((c) => c.status == "Pending Approval")
-        }
+        columns={columns(false)}
+        dataSource={dataSource.filter((c) => c.status === "Pending Approval" || c.status === "Appeal")}
         rowKey="personnelActivityId"
         loading={isFetching}
-        style={{ marginTop: 16 }}
+        pagination={{ pageSize: 5 }}
       />
+
       <Table
-        scroll={{ x: 1000 }}
+        title={() => (
+          <Space className="text-slate-500 font-bold">
+            <HistoryOutlined />
+            <span>APPROVAL HISTORY</span>
+          </Space>
+        )}
+        scroll={{ x: 1200 }}
         size="small"
-        columns={columns}
-        dataSource={
-          filteredData.length
-            ? filteredData.filter((c) => c.status != "Pending Approval")
-            : activities.filter((c) => c.status != "Pending Approval")
-        }
+        columns={columns(true)}
+        dataSource={activitiesAll}
         rowKey="personnelActivityId"
-        loading={isFetching}
-        style={{ marginTop: 16 }}
-        title={() => "History"}
+        loading={isFetchingAll}
+        style={{ marginTop: 24 }}
+        pagination={{ pageSize: 10 }}
       />
 
       <ApprovalModal
-      
         setIsModalVisible={setIsModalVisible}
         selectedActivity={selectedActivity}
         isModalVisible={isModalVisible}
-        onAfterSave={refetch}      />
+        onAfterSave={() => { refetch(); referetchAll() }}
+        viewOnly={viewOnly}
+      />
     </div>
   );
 };

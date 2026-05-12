@@ -3,7 +3,7 @@ import type { EnlistmentRecord } from "./EnlistmentRecord";
 import type { PersonnelActivity } from "./PersonnelActivity";
 import type { PersonnelDutyLogs } from "./PersonnelDutyLogs";
 import type { Rank } from "./Rank";
-import type { Usertbl } from "./Usertbl";
+
 
 export type Personnel = {
   personnelId?: number | null;
@@ -14,16 +14,15 @@ export type Personnel = {
   lastName?: string | null;
   rankId?: number | null;
   rank?: Rank | null;
-  departmentId?: number | null;
-  department?: Department | null;
-  userId?: number | null;
-  user?: Usertbl;
   employmentStatus?: string | null;
   dateEnlisted?: string | null;
   dateEnteredService?: string | null;
   email?: string | null;
+  hasAccount?: boolean | null;
   dateOfLastPromotion?: string | null;
   personnelActivities?: PersonnelActivity[];
   enlistmentRecords?: EnlistmentRecord[];
-  dutyStatus?:PersonnelDutyLogs|null;
+  dutyStatus?: PersonnelDutyLogs | null;
+  departmentId?: number | null;
+  department?: Department | null
 };

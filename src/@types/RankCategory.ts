@@ -1,6 +1,6 @@
 
 export type RankCategory = {
- 	id? : number;
-	name? : string;
-	casing? : string;
+	id?: number | null;
+	name?: string | null;
+	casing?: string | null;
 };

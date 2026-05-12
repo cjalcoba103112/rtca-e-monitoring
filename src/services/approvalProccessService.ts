@@ -7,9 +7,9 @@ export const approvalProccessService = {
     /**
      * Stage 1: CMAA Recommendation
      */
-    updateByCMAA: async (data: ApprovalProccess): Promise<ApprovalProccess> => {
+    updateStageOne: async (data: ApprovalProccess): Promise<ApprovalProccess> => {
         const response = await axiosInstance.post<ApprovalProccess>(
-            `${subdirectory}/cmaa`,
+            `${subdirectory}/stage-one`,
             data
         );
         return response.data;
@@ -18,9 +18,9 @@ export const approvalProccessService = {
     /**
      * Stage 2: OIC Approval
      */
-    updateByOIC: async (data: ApprovalProccess): Promise<ApprovalProccess> => {
+    updateStageTwo: async (data: ApprovalProccess): Promise<ApprovalProccess> => {
         const response = await axiosInstance.post<ApprovalProccess>(
-            `${subdirectory}/oic`,
+            `${subdirectory}/stage-two`,
             data
         );
         return response.data;
@@ -29,9 +29,9 @@ export const approvalProccessService = {
     /**
      * Stage 3: CSG Clearance
      */
-    updateByCSG: async (data: ApprovalProccess): Promise<ApprovalProccess> => {
+    updateStageThree: async (data: ApprovalProccess): Promise<ApprovalProccess> => {
         const response = await axiosInstance.post<ApprovalProccess>(
-            `${subdirectory}/csg`,
+            `${subdirectory}/stage-three`,
             data
         );
         return response.data;
@@ -41,13 +41,14 @@ export const approvalProccessService = {
      * Stage 4: CO Final Action
      * Includes the personnelActivityId in the URL path
      */
-    updateByCO: async (data: ApprovalProccess, personnelActivityId: number): Promise<ApprovalProccess> => {
+    updateFinalStage: async (data: ApprovalProccess, personnelActivityId: number): Promise<ApprovalProccess> => {
         const response = await axiosInstance.post<ApprovalProccess>(
-            `${subdirectory}/co/${personnelActivityId}`,
+            `${subdirectory}/final-stage/${personnelActivityId}`,
             data
         );
         return response.data;
     },
+
 
     /**
      * Optional: Get details by ID

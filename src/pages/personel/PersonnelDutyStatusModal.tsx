@@ -6,7 +6,6 @@ import {
     StopOutlined,
     SwapOutlined,
     CheckCircleOutlined,
-    CalendarOutlined,
     EditOutlined
 } from "@ant-design/icons";
 import type { FormInstance } from "antd";
@@ -15,7 +14,7 @@ import imageUtility from "../../utils/imageUtility";
 import nameFormat from "../../utils/nameFormat";
 import dayjs from "dayjs";
 import personnelDutyLogsService from "../../services/personnelDutyLogsService";
-import type { PersonnelDutyLogs } from "../../@types/personnelDutyLogs";
+import type { PersonnelDutyLogs } from "../../@types/PersonnelDutyLogs";
 import { getDutyStatusColor } from "../../utils/getDutyStatusColor";
 
 const { TextArea } = Input;

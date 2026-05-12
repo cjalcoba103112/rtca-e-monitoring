@@ -51,7 +51,6 @@ export default function PersonnelSaveModal({
   const [casing, setCasing] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
 
-  // ✅ FIX: properly set form values when editing
   useEffect(() => {
     if (selectedPersonnel) {
       setPreview(imageUtility.getProfile(selectedPersonnel.profile) ?? "");
@@ -76,8 +75,8 @@ export default function PersonnelSaveModal({
     setIsSubmitting(true);
     try {
       const values = await form.validateFields();
-
-      // ✅ Use FormData (IMPORTANT for file upload)
+      console.log(values)
+    
       const formData = new FormData();
 
       (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
@@ -192,7 +191,7 @@ export default function PersonnelSaveModal({
               onChange={(value) => {
                 setCasing(
                   ranks?.find((r) => r.rankId == value)?.rankCategory?.casing ??
-                    "",
+                  "",
                 );
               }}
               options={ranks?.map((r) => ({
@@ -229,16 +228,37 @@ export default function PersonnelSaveModal({
           <Form.Item
             name="email"
             label="Email"
-            // rules={[
-            //   { required: true },
-            //   { type: "email", message: "Invalid email" },
-            // ]}
+          // rules={[
+          //   { required: true },
+          //   { type: "email", message: "Invalid email" },
+          // ]}
           >
             <Input />
           </Form.Item>
 
-          <Form.Item name="departmentId" label="Department">
+          <Form.Item
+            name="departmentId"
+            label="Primary Designation"
+            rules={[{ required: true, message: 'Please select primary department' }]}
+          >
             <Select
+              placeholder="Select primary department"
+              options={departments?.map((d) => ({
+                label: d.departmentName,
+                value: d.departmentId,
+              }))}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="otherDepartmentIds"
+            label="Other Designations"
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              placeholder="Select all applicable departments"
+              style={{ width: '100%' }}
               options={departments?.map((d) => ({
                 label: d.departmentName,
                 value: d.departmentId,
@@ -267,7 +287,7 @@ export default function PersonnelSaveModal({
           <Form.Item
             name="dateEnteredService"
             label="Date Entered Service"
-            // required
+          // required
           >
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>

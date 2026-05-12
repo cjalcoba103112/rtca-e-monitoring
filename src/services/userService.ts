@@ -29,6 +29,11 @@ export const userService = {
     const response = await axiosInstance.patch<Usertbl>(`${subdirectory}/${user.userId}`, user);
     return response.data;
   },
+  changeDefaultPassword: async (user: Usertbl): Promise<Usertbl> => {
+    if (!user.userId) throw new Error("UserId is required for update");
+    const response = await axiosInstance.patch<Usertbl>(`${subdirectory}/change-default-password/${user.userId}`, user);
+    return response.data;
+  },
 
   // Delete a user
   delete: async (userId?: number): Promise<void> => {

@@ -1,6 +1,5 @@
-import { Tabs, Card, Typography, Divider } from "antd";
+import { Card, Typography, Divider } from "antd";
 import { SafetyCertificateOutlined } from "@ant-design/icons";
-import SignupTab from "./SignupTab";
 import LoginTab from "./LoginTab";
 
 const { Title } = Typography;
@@ -65,24 +64,9 @@ export default function AuthPage() {
               <Title level={3}>RTC Aurora</Title>
             </div>
 
-            <Tabs
-              defaultActiveKey="1"
-              animated={{ inkBar: true, tabPane: true }}
-            >
-              <Tabs.TabPane
-                tab={<span className="px-4 text-lg">Login</span>}
-                key="1"
-              >
+           
                 <LoginTab />
-              </Tabs.TabPane>
               
-              <Tabs.TabPane
-                tab={<span className="px-4 text-lg">Register</span>}
-                key="2"
-              >
-                <SignupTab />
-              </Tabs.TabPane>
-            </Tabs>
 
             <Divider plain className="text-gray-400 text-xs">
               Official Portal

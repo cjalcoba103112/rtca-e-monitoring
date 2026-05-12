@@ -20,9 +20,9 @@ export default function PersonnelSelectComponent({
   required = true,
   onChange, // Destructure here
 }: PersonnelSelectProps) {
-  const { data: personnelList = [] } = useQuery({
+  const { data: personnelList = [],isFetching } = useQuery({
     queryKey: ["personnelList"],
-    queryFn: async () => await personelService.getAll(),
+    queryFn: async () => await personelService.getAllOnly(),
   });
 
   return (
@@ -34,6 +34,7 @@ export default function PersonnelSelectComponent({
       }
     >
       <Select
+        loading={isFetching}
         showSearch
         placeholder={`Select ${label}`}
         optionFilterProp="children"

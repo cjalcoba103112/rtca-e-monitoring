@@ -25,6 +25,8 @@ import {
   HistoryOutlined,
   UserOutlined,
   UserAddOutlined,
+  CheckOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import CreditsModal from "../leave-history/CreditsModal";
 import imageUtility from "../../utils/imageUtility";
@@ -32,8 +34,8 @@ import PersonnelActivitiesTable from "../leave-history/PersonnelActivitiesTable"
 import UserSaveModal from "../user/UserSaveModal";
 import type { Usertbl } from "../../@types/Usertbl";
 import PersonnelDutyStatusModal from "./PersonnelDutyStatusModal";
-import type { PersonnelDutyLogs } from "../../@types/personnelDutyLogs";
 import { getDutyStatusColor } from "../../utils/getDutyStatusColor";
+import type { Department } from "../../@types/Department";
 
 export type PersonnelForm = Omit<
   Personnel,
@@ -51,12 +53,8 @@ export const emptyPersonnel: Personnel = {
   firstName: null,
   middleName: null,
   lastName: null,
-
   rankId: null,
   rank: null,
-
-  departmentId: null,
-  department: null,
   email: null,
   employmentStatus: "Active",
   dateEnlisted: null,
@@ -91,7 +89,7 @@ const PersonnelIndex: React.FC = () => {
     queryKey: ["personnel"],
     queryFn: async () => {
 
-      const data = await personelService.getAll()
+      const data = await personelService.getAllOnly()
       setFilteredData(data);
       return data;
     },
@@ -137,12 +135,14 @@ const PersonnelIndex: React.FC = () => {
   };
 
   const openUserModal = (personnel: Personnel) => {
-    userForm.resetFields();
-    userForm.setFieldsValue({
-      email: personnel.email || undefined,
-    });
     setSelectedPersonnel(personnel); // Reuse selectedPersonnel to track who we are adding for
     setIsUserModalVisible(true);
+    userForm.resetFields();
+    userForm.setFieldsValue({
+      personnelId: personnel.personnelId || undefined,
+      email: personnel.email || undefined,
+    });
+
   };
 
 
@@ -241,7 +241,18 @@ const PersonnelIndex: React.FC = () => {
       render: (_, value: Personnel) => nameFormat(value),
 
     },
+    {
 
+      title: "Designation",
+
+      dataIndex: "department",
+
+      key: "department",
+      render: (value: Department) => value?.departmentName
+
+
+
+    },
     {
 
       title: "Email",
@@ -259,11 +270,11 @@ const PersonnelIndex: React.FC = () => {
       render: (duty: string | null, record: Personnel) => {
         const status = duty ?? "active";
 
-        let color = "default";
-        const lowerStatus = status?.toLowerCase();
-        if (lowerStatus === "active") color = "green";
-        else if (lowerStatus === "inactive") color = "orange";
-        else if (lowerStatus === "suspended") color = "red";
+        // let color = "default";
+        // const lowerStatus = status?.toLowerCase();
+        // if (lowerStatus === "active") color = "green";
+        // else if (lowerStatus === "inactive") color = "orange";
+        // else if (lowerStatus === "suspended") color = "red";
 
         return (
           <Space>
@@ -322,7 +333,7 @@ const PersonnelIndex: React.FC = () => {
       title: "Has Account",
 
       key: "hasAccount",
-
+      dataIndex: "hasAccount",
       width: 100,
 
       align: "center",
@@ -333,23 +344,12 @@ const PersonnelIndex: React.FC = () => {
         { text: "No", value: false },
 
       ],
-
-      onFilter: (value, record) => !!record.userId === value,
-
-      render: (_, record) => {
-
-        const hasAccount = !!record.userId || !!record.user;
-
-        return (
-
-          <Tag color={hasAccount ? "blue" : "default"}>
-
-            {hasAccount ? "YES" : "NO"}
-
-          </Tag>
-
+      render: (value) => {
+        return value ? (
+          <CheckOutlined style={{ color: "#52c41a", fontSize: "16px", fontWeight: "bold" }} />
+        ) : (
+          <CloseOutlined style={{ color: "#ff4d4f", fontSize: "16px", fontWeight: "bold" }} />
         );
-
       },
 
     },
@@ -380,7 +380,7 @@ const PersonnelIndex: React.FC = () => {
 
           </Tooltip>
 
-          {!record.userId && (
+          {!record.hasAccount && (
 
             <Tooltip title="Create System Account">
 
@@ -512,7 +512,7 @@ const PersonnelIndex: React.FC = () => {
         setIsModalVisible={setIsStatusModalVisible}
         selectedPersonnel={selectedPersonnel}
         onAfterSave={() => refetch()}
-        onUpdate={async (values) => {
+        onUpdate={async () => {
           if (selectedPersonnel?.personnelId) {
             // await personelService.update(selectedPersonnel.personnelId, {
             //   ...selectedPersonnel,
