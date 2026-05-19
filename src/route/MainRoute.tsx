@@ -17,7 +17,6 @@ import ApprovalLeave from "../pages/personnel-activity/ApprovalLeave";
 import DepartmentIndex from "../pages/department/DepartmentIndex";
 import EtePage from "../pages/ete/EtePage";
 import LeaveHistoryPage from "../pages/leave-history/LeaveHistoryPage";
-import LeaveTypesPage from "../pages/LeaveTypes/LeavePage";
 import UserIndex from "../pages/user/UserIndex";
 import RoleIndex from "../pages/role/RoleIndex";
 import AuthPage from "../pages/auth/authPage";
@@ -28,6 +27,7 @@ import ApprovalProcessIndex from "../pages/approvalProcess/ApprovalProcessIndex"
 import SidebarIndex from "../pages/role-sidebar/RoleSidebarIndex";
 import ApproverPage from "../pages/approver/ApproverIndex";
 import ActivityAppealForm from "../pages/appeal/ActivityAppealForm";
+import SchoolingIndex from "../pages/schooling/SchoolingIndex";
 
 // Import your pages... (omitted for brevity, keep your existing imports)
 
@@ -68,10 +68,11 @@ export default function MainRoute() {
           {isAllowed("/department") && <Route path="/department" element={<DepartmentIndex />} />}
           {isAllowed("/ete") && <Route path="/ete" element={<EtePage />} />}
           {isAllowed("/activity-history") && <Route path="/activity-history" element={<LeaveHistoryPage />} />}
-          {isAllowed("/activity-types") && <Route path="/activity-types" element={<LeaveTypesPage />} />}
+          {isAllowed("/activity-types") && <Route path="/activity-types" element={<ActivityTypeIndex />} />}
           {isAllowed("/user") && <Route path="/user" element={<UserIndex />} />}
           {isAllowed("/role") && <Route path="/role" element={<RoleIndex />} />}
           {isAllowed("/sidebar") && <Route path="/sidebar" element={<SidebarIndex />} />}
+          {isAllowed("/schooling") && <Route path="/schooling" element={<SchoolingIndex />} />}
 
           {/* Catch-all for unauthorized paths inside the layout */}
           <Route path="*" element={<Navigate to="/" replace />} />

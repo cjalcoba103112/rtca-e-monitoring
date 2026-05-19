@@ -48,7 +48,11 @@ export default function PersonnelActivitySaveModal({
   // 1. Fetch Activity Types
   const { data: activityTypes } = useQuery({
     queryKey: ["activityTypes"],
-    queryFn: async () => await activityTypeService.getAll(),
+    queryFn: async () =>{
+      const types = await activityTypeService.getAll()
+      return types?.filter(t=>t.activityTypeName != "SCHOOLING")
+      
+    },
     initialData: [],
   });
 

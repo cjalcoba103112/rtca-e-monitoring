@@ -82,8 +82,8 @@ export default function RankSaveModal({
 
         <Form.Item
           name="rankLevel"
-          label="Rank Level"
-          rules={[{ required: true, message: "Please input rank level" }]}
+          label="Asc Order"
+          rules={[{ required: true, message: "Please input asc order" }]}
         >
           <InputNumber min={0} style={{ width: "100%" }} />
         </Form.Item>

@@ -251,12 +251,13 @@ export default function DeptActivityChart() {
                 <div
                   style={{
                     backgroundColor: deptColor,
-                    color: "white",
+                    // color: "white",
                     padding: "8px 12px",
                     borderRadius: "6px",
                     fontWeight: 600,
                     fontSize: 14,
                     marginBottom: 10,
+                    textAlign:"center"
                   }}
                 >
                   {dept} (
@@ -266,7 +267,6 @@ export default function DeptActivityChart() {
                 {/* Activities Grid */}
                 <div className="grid lg:grid-cols-2 md:grid-cols-1 gap-4">
                   {activities.map((act) => {
-                    const actColor = getRandomColor();
 
                     const columns = [
                       {
@@ -310,12 +310,13 @@ export default function DeptActivityChart() {
                         {/* Activity Header */}
                         <div
                           style={{
-                            backgroundColor: actColor,
-                            color: "white",
+                            // backgroundColor: actColor,
+                            // color: "white",
                             padding: "6px 10px",
                             borderRadius: "6px 6px 0 0",
                             fontWeight: 600,
                             fontSize: 13,
+                            textAlign:"center"
                           }}
                         >
                           {act.activity} ({act.personnel})

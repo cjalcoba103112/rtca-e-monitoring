@@ -33,17 +33,21 @@ export default function UserSaveModal({
 
   // Sync form values when selectedUser changes (Edit Mode)
   useEffect(() => {
-    if (isModalVisible && selectedUser) {
+    console.log(isModalVisible,selectedUser)
+    if (isModalVisible) {
+      const userEmail = selectedUser?.personnel?.email;
+      // If userName is null/empty, extract prefix from email. If no email, fallback to undefined.
+      const initialUserName = selectedUser?.userName || (userEmail ? userEmail.split("@")[0] : undefined);
       form.setFieldsValue({
-        userName: selectedUser.userName,
-        email: selectedUser.personnel?.email,
-        roleId: selectedUser.roleId,
-        personnelId: selectedUser.personnelId,
+        userName: initialUserName,
+        email: userEmail,
+        roleId: selectedUser?.roleId,
+        personnelId: selectedUser?.personnelId,
       });
     } else if (!isModalVisible) {
       form.resetFields();
     }
-  }, [selectedUser, isModalVisible, form]);
+  }, [ isModalVisible]);
 
   const { data: personnelList = [] } = useQuery({
     queryKey: ["personnel"],
@@ -70,7 +74,7 @@ export default function UserSaveModal({
       setLoading(true);
 
       if (selectedUser?.userId) {
-        await userService.update({...selectedUser, ...values, userId: selectedUser.userId });
+        await userService.update({ ...selectedUser, ...values, userId: selectedUser.userId });
         message.success("User updated successfully");
       } else {
         await userService.add(values);
@@ -90,7 +94,7 @@ export default function UserSaveModal({
     const person = personnelList.find((p) => p.personnelId === id);
     form.setFieldsValue({
       email: person?.email || undefined,
-      userName: person?.email?.split("@")[0] || undefined,
+      userName: person?.email ? person.email.split("@")[0] : undefined,
     });
   };
 
@@ -184,11 +188,10 @@ export default function UserSaveModal({
           name="email"
           label="Account Email"
           extra={!selectedUser && "This is where login credentials will be sent."}
-         
         >
-          <Input 
-            prefix={<MailOutlined className="text-gray-400" />} 
-            readOnly={!!selectedPerson || !!selectedUser} 
+          <Input
+            prefix={<MailOutlined className="text-gray-400" />}
+            readOnly={!!selectedPerson || !!selectedUser}
             variant={selectedPerson || selectedUser ? "filled" : "outlined"}
           />
         </Form.Item>

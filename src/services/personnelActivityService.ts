@@ -42,6 +42,17 @@ export const personnelActivityService = {
     return response.data;
   },
 
+   insertSchooling: async (
+    personnelActivity: PersonnelActivity
+  ): Promise<PersonnelActivity> => {
+    const response = await axiosInstance.post<PersonnelActivity>(
+      `${subdirectory}/schooling`,
+      personnelActivity,
+    );
+    return response.data;
+  },
+
+
   decline: async (
     personnelActivityId: number,
     remarks?: string,

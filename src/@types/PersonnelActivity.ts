@@ -11,7 +11,7 @@ export type PersonnelActivity = {
   title?: string | null;
   startDate?: string | null;
   endDate?: string | null;
-  status?: string | null;
+  status?: "Suspended" | "Inactive" | "Declined" | "Pending Approval" | "Appeal" | "Ongoing" | "Scheduled" | null;
   result?: string | null;
   remarks?: string | null;
   days?: number | null;

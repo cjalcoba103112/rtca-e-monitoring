@@ -69,6 +69,7 @@ export default function SidebarLayout({ collapsed }: SidebarLayoutProps) {
         position: "sticky",
         top: 0,
         left: 0,
+        overflow:"auto"
       }}
     >
       <div className="flex justify-center p-4">

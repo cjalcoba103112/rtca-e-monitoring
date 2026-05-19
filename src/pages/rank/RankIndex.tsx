@@ -6,6 +6,7 @@ import type { Rank } from "../../@types/Rank";
 import { useQuery } from "@tanstack/react-query";
 import rankService from "../../services/rankService";
 import RankSaveModal from "./RankSaveModal";
+import getOrdinalSuffix from "../../utils/getOrdinalSuffix";
 
 const RankIndex: React.FC = () => {
   const [selectedRank, setSelectedRank] = useState<Rank | null>(null);
@@ -45,7 +46,9 @@ const RankIndex: React.FC = () => {
     { title: "Category", dataIndex: "rankCategory", key: "rankCategory" ,
       render:(_,record:Rank)=> record.rankCategory?.name
     },
-    { title: "Level", dataIndex: "rankLevel", key: "rankLevel" },
+    { title: "Order", dataIndex: "rankLevel", key: "rankLevel", render:(value:number) => getOrdinalSuffix(value)
+      
+    },
     {
       title: "Actions",
       key: "actions",

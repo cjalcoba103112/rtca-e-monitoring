@@ -1,6 +1,6 @@
 import axios from "axios";
 
- //export const baseURL = "https://localhost:7245";
+//export const baseURL = "https://localhost:7245";
 export const baseURL = "http://rtca-e-monitoring-web-api.runasp.net";
 
 const axiosInstance = axios.create({

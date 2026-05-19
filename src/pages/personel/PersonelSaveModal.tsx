@@ -239,10 +239,10 @@ export default function PersonnelSaveModal({
           <Form.Item
             name="departmentId"
             label="Primary Designation"
-            rules={[{ required: true, message: 'Please select primary department' }]}
           >
             <Select
               placeholder="Select primary department"
+              allowClear
               options={departments?.map((d) => ({
                 label: d.departmentName,
                 value: d.departmentId,

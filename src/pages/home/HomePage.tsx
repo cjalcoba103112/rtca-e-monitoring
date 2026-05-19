@@ -1,6 +1,7 @@
 import { Card, Tabs } from "antd";
 import ActivityStatus from "./tabs/ActivityStatus";
 import ByRanks from "./tabs/ByRanks";
+import ByColorLegend from "./tabs/ByColorLegend";
 
 const { TabPane } = Tabs;
 
@@ -10,6 +11,9 @@ function HomePage() {
       <Tabs defaultActiveKey="activity">
         <TabPane tab="Activity Status" key="activity">
           <ActivityStatus />
+        </TabPane>
+          <TabPane tab="By Legend" key="legend">
+          <ByColorLegend />
         </TabPane>
         <TabPane tab="By Rank" key="rank">
           <ByRanks />

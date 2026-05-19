@@ -16,7 +16,7 @@ export const emptyValues: PersonnelActivity = {
   title: null,
   startDate: null,
   endDate: null,
-  status: "Pending",
+  status: "Pending Approval",
   result: null,
   remarks: null,
 };
