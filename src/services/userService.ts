@@ -35,6 +35,19 @@ export const userService = {
     return response.data;
   },
 
+
+  forgotPassword: async (email?: string): Promise<{ message: string }> => {
+    if (!email || email.trim() === "") {
+      throw new Error("Email is required to request a password reset.");
+    }
+
+    const response = await axiosInstance.post<{ message: string }>(
+      `${subdirectory}/forgot-password`,
+      { email }
+    );
+
+    return response.data;
+  },
   // Delete a user
   delete: async (userId?: number): Promise<void> => {
     if (!userId) throw new Error("Id in delete is null");

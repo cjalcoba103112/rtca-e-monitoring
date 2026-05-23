@@ -59,7 +59,7 @@ export default function DepartmentSaveModal({
         >
           <Input />
         </Form.Item>
-        <PersonnelSelectComponent name={"oicId"} label={"OIC"} />
+        <PersonnelSelectComponent name={"oicId"} label={"OIC"} required={false} />
 
       </Form>
     </Modal>

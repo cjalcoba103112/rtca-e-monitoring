@@ -25,4 +25,5 @@ export type Personnel = {
   dutyStatus?: PersonnelDutyLogs | null;
   departmentId?: number | null;
   department?: Department | null
+  otherDepartmentIds?: number[]
 };

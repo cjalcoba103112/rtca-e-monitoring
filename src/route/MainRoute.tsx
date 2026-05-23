@@ -28,6 +28,7 @@ import SidebarIndex from "../pages/role-sidebar/RoleSidebarIndex";
 import ApproverPage from "../pages/approver/ApproverIndex";
 import ActivityAppealForm from "../pages/appeal/ActivityAppealForm";
 import SchoolingIndex from "../pages/schooling/SchoolingIndex";
+import RestrictedIndex from "../pages/restricted/RestrictedIndex";
 
 // Import your pages... (omitted for brevity, keep your existing imports)
 
@@ -73,6 +74,7 @@ export default function MainRoute() {
           {isAllowed("/role") && <Route path="/role" element={<RoleIndex />} />}
           {isAllowed("/sidebar") && <Route path="/sidebar" element={<SidebarIndex />} />}
           {isAllowed("/schooling") && <Route path="/schooling" element={<SchoolingIndex />} />}
+           {isAllowed("/restricted") && <Route path="/restricted" element={<RestrictedIndex />} />}
 
           {/* Catch-all for unauthorized paths inside the layout */}
           <Route path="*" element={<Navigate to="/" replace />} />

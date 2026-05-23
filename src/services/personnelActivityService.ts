@@ -1,3 +1,4 @@
+import type { AxiosResponse } from "axios";
 import type { PersonnelActivity } from "../@types/PersonnelActivity";
 import axiosInstance from "./_axiosInstance";
 
@@ -42,7 +43,7 @@ export const personnelActivityService = {
     return response.data;
   },
 
-   insertSchooling: async (
+  insertSchooling: async (
     personnelActivity: PersonnelActivity
   ): Promise<PersonnelActivity> => {
     const response = await axiosInstance.post<PersonnelActivity>(
@@ -51,6 +52,27 @@ export const personnelActivityService = {
     );
     return response.data;
   },
+
+
+  insertRestricted: async (
+    personnelActivity: PersonnelActivity
+  ): Promise<PersonnelActivity> => {
+    const response = await axiosInstance.post<PersonnelActivity>(
+      `${subdirectory}/restricted`,
+      personnelActivity,
+    );
+    return response.data;
+  },
+
+checkOverlap: async (
+  personnelActivity: PersonnelActivity
+): Promise<AxiosResponse<{ hasOverlap: boolean; message: string; activity?: PersonnelActivity }>> => {
+  const response = await axiosInstance.post<{ hasOverlap: boolean; message: string; activity?: any }>(
+    `${subdirectory}/check-overlap`,
+    personnelActivity
+  );
+  return response;
+},
 
 
   decline: async (

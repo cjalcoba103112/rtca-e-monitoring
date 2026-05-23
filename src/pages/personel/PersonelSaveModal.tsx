@@ -74,22 +74,28 @@ export default function PersonnelSaveModal({
   const handleOk = async () => {
     setIsSubmitting(true);
     try {
-      const values = await form.validateFields();
-      console.log(values)
+      const val = await form.validateFields();
+      const values:PersonnelForm = {...val,hasAccount:selectedPersonnel?.hasAccount}
     
       const formData = new FormData();
 
-      (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
-        const value = values[key];
+     (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
+  const value = values[key];
 
-        if (value === null || value === undefined) return;
+  if (value === null || value === undefined) return;
 
-        if (dayjs.isDayjs(value)) {
-          formData.append(key as string, value.format("YYYY-MM-DD"));
-        } else {
-          formData.append(key as string, String(value));
-        }
-      });
+  if (dayjs.isDayjs(value)) {
+    formData.append(key as string, value.format("YYYY-MM-DD"));
+  } else if (Array.isArray(value)) {
+    // ✅ Handle arrays by appending each item individually
+    value.forEach((item) => {
+      // Use "key" or `${key}[]` depending on what your backend expects
+      formData.append(key as string, String(item));
+    });
+  } else {
+    formData.append(key as string, String(value));
+  }
+});
 
       // ✅ append file
       if (file) {

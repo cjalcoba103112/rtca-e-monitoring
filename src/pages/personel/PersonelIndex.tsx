@@ -6,7 +6,6 @@ import {
   Space,
   Popconfirm,
   Form,
-  Tag,
   Tooltip,
   Image,
 } from "antd";
@@ -34,8 +33,7 @@ import PersonnelActivitiesTable from "../leave-history/PersonnelActivitiesTable"
 import UserSaveModal from "../user/UserSaveModal";
 import type { Usertbl } from "../../@types/Usertbl";
 import PersonnelDutyStatusModal from "./PersonnelDutyStatusModal";
-import { getDutyStatusColor } from "../../utils/getDutyStatusColor";
-import type { Department } from "../../@types/Department";
+import departmentService from "../../services/departmentService";
 
 export type PersonnelForm = Omit<
   Personnel,
@@ -75,12 +73,16 @@ const PersonnelIndex: React.FC = () => {
   const [userForm] = Form.useForm<Usertbl>();
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
   const [statusForm] = Form.useForm();
+  const { data: departments } = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => await departmentService.getAll(),
+  });
 
-  const openStatusModal = (record: Personnel) => {
-    setSelectedPersonnel(record);
-    statusForm.setFieldsValue({ employmentStatus: record.employmentStatus });
-    setIsStatusModalVisible(true);
-  };
+  // const openStatusModal = (record: Personnel) => {
+  //   setSelectedPersonnel(record);
+  //   statusForm.setFieldsValue({ employmentStatus: record.employmentStatus });
+  //   setIsStatusModalVisible(true);
+  // };
   const {
     data: personnelList,
     refetch,
@@ -241,18 +243,43 @@ const PersonnelIndex: React.FC = () => {
       render: (_, value: Personnel) => nameFormat(value),
 
     },
-    {
+{
+  title: "Designation",
+  key: "departmentsCombination",
+  width:200,   // Remove dataIndex so render receives the entire row object
+  render: (_, record: Personnel) => {
+    const primaryDeptName = record.department?.departmentName;
+    const hasOtherDepts = record.otherDepartmentIds && record.otherDepartmentIds.length > 0;
 
-      title: "Designation",
+    // Filter and map the other department names
+    const otherDeptNames = hasOtherDepts
+      ? departments
+          ?.filter((dept) => record.otherDepartmentIds?.includes(dept.departmentId ?? 0))
+          ?.map((dept) => dept.departmentName)
+          ?.join(", ")
+      : "";
 
-      dataIndex: "department",
-
-      key: "department",
-      render: (value: Department) => value?.departmentName
-
-
-
-    },
+    if (!primaryDeptName && !otherDeptNames) return "";
+    
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+        {primaryDeptName && (
+          <span style={{ color: "#1890ff", fontWeight: 700 }}>
+            {primaryDeptName}
+          </span>
+        )}
+        
+        {/* Other Departments listed cleanly below or beside */}
+        {otherDeptNames && (
+          <span style={{ color: "#8c8c8c", fontSize: "12px" }}>
+            
+            {primaryDeptName ?<><b>Other:</b> {otherDeptNames}</>  : otherDeptNames}
+          </span>
+        )}
+      </div>
+    );
+  }
+},
     {
 
       title: "Email",
@@ -263,34 +290,34 @@ const PersonnelIndex: React.FC = () => {
 
     },
 
-    {
-      title: "Duty Status",
-      dataIndex: "dutyStatus",
-      key: "dutyStatus",
-      render: (duty: string | null, record: Personnel) => {
-        const status = duty ?? "active";
+    // {
+    //   title: "Duty Status",
+    //   dataIndex: "dutyStatus",
+    //   key: "dutyStatus",
+    //   render: (duty: string | null, record: Personnel) => {
+    //     const status = duty ?? "active";
 
-        // let color = "default";
-        // const lowerStatus = status?.toLowerCase();
-        // if (lowerStatus === "active") color = "green";
-        // else if (lowerStatus === "inactive") color = "orange";
-        // else if (lowerStatus === "suspended") color = "red";
+    //     // let color = "default";
+    //     // const lowerStatus = status?.toLowerCase();
+    //     // if (lowerStatus === "active") color = "green";
+    //     // else if (lowerStatus === "inactive") color = "orange";
+    //     // else if (lowerStatus === "suspended") color = "red";
 
-        return (
-          <Space>
-            <Tag color={getDutyStatusColor(status)}>{status?.toUpperCase()}</Tag>
-            <Tooltip title="Update Status">
-              <Button
-                type="text"
-                size="small"
-                icon={<EditOutlined style={{ fontSize: '12px', color: '#1890ff' }} />}
-                onClick={() => openStatusModal(record)}
-              />
-            </Tooltip>
-          </Space>
-        );
-      },
-    },
+    //     return (
+    //       <Space>
+    //         <Tag color={getDutyStatusColor(status)}>{status?.toUpperCase()}</Tag>
+    //         <Tooltip title="Update Status">
+    //           <Button
+    //             type="text"
+    //             size="small"
+    //             icon={<EditOutlined style={{ fontSize: '12px', color: '#1890ff' }} />}
+    //             onClick={() => openStatusModal(record)}
+    //           />
+    //         </Tooltip>
+    //       </Space>
+    //     );
+    //   },
+    // },
 
     {
 
@@ -490,7 +517,7 @@ const PersonnelIndex: React.FC = () => {
         form={userForm}
         isModalVisible={isUserModalVisible}
         setIsModalVisible={setIsUserModalVisible}
-        selectedUser={null}
+        selectedUser={{personnel:selectedPersonnel,personnelId:selectedPersonnel?.personnelId}}
         onAfterSave={() => refetch()}
       />
       <CreditsModal

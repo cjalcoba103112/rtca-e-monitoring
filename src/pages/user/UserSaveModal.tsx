@@ -33,7 +33,7 @@ export default function UserSaveModal({
 
   // Sync form values when selectedUser changes (Edit Mode)
   useEffect(() => {
-    console.log(isModalVisible,selectedUser)
+    console.log(isModalVisible, selectedUser)
     if (isModalVisible) {
       const userEmail = selectedUser?.personnel?.email;
       // If userName is null/empty, extract prefix from email. If no email, fallback to undefined.
@@ -47,7 +47,7 @@ export default function UserSaveModal({
     } else if (!isModalVisible) {
       form.resetFields();
     }
-  }, [ isModalVisible]);
+  }, [isModalVisible]);
 
   const { data: personnelList = [] } = useQuery({
     queryKey: ["personnel"],
@@ -150,15 +150,16 @@ export default function UserSaveModal({
       </div>
 
       <Form form={form} layout="vertical">
-        {!selectedUser && (
-          <div style={{ marginBottom: "12px" }}>
-            <PersonnelSelectComponent
-              name="personnelId"
-              label="Personnel Reference"
-              onChange={handlePersonnelChange}
-            />
-          </div>
-        )}
+
+        <div style={{ marginBottom: "12px" }} hidden={!!selectedUser?.personnelId}>
+          <PersonnelSelectComponent
+            required={false}
+            name="personnelId"
+            label="Personnel Reference"
+            onChange={handlePersonnelChange}
+          />
+        </div>
+
 
         <div className="grid grid-cols-2 gap-x-4">
           <Form.Item

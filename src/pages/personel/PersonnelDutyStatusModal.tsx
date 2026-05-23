@@ -16,6 +16,8 @@ import dayjs from "dayjs";
 import personnelDutyLogsService from "../../services/personnelDutyLogsService";
 import type { PersonnelDutyLogs } from "../../@types/PersonnelDutyLogs";
 import { getDutyStatusColor } from "../../utils/getDutyStatusColor";
+import SchoolingSaveModal from "../schooling/SchoolingSaveModal";
+import type { PersonnelActivity } from "../../@types/PersonnelActivity";
 
 const { TextArea } = Input;
 
@@ -36,6 +38,7 @@ const PersonnelDutyStatusModal: React.FC<PersonnelStatusDutyModalProps> = ({
     onAfterSave,
 }) => {
     const [currentSelectedStatus, setCurrentSelectedStatus] = useState<string | null>(null);
+     const [schoolingModal, setSchoolingModal] = useState<boolean>(false);
 
     // Helper to format duration for the Info Card
     const getDurationLabel = (start?: Date, end?: Date | null) => {
@@ -63,6 +66,36 @@ const PersonnelDutyStatusModal: React.FC<PersonnelStatusDutyModalProps> = ({
             console.error("Validation failed");
         }
     };
+     const [activityForm] = Form.useForm<PersonnelActivity>();
+    
+        const openSchoolingModal = () => {
+                activityForm.setFieldsValue({
+                  personnelId:selectedPersonnel?.personnelId
+                   
+                });
+            // if (activity) {
+            //     form.setFieldsValue({
+            //         ...activity,
+            //         startDate: activity.startDate ? dayjs(activity.startDate) : undefined,
+            //         endDate: activity.endDate ? dayjs(activity.endDate) : undefined,
+            //     });
+            //     setSelectedActivity(activity);
+            // } else {
+            //     form.setFieldsValue(emptyValues);
+            //     setSelectedActivity(null);
+            // }
+            setSchoolingModal(true);
+        };
+
+        const handleSelect=(val:any)=>{
+                console.log(val)
+                if(val =='Schooling')
+                {
+                    openSchoolingModal()
+                    return;
+                }
+                setCurrentSelectedStatus(val)
+        }
 
     return (
         <Modal
@@ -83,6 +116,16 @@ const PersonnelDutyStatusModal: React.FC<PersonnelStatusDutyModalProps> = ({
                 danger: currentSelectedStatus === "Suspended" || currentSelectedStatus === "Inactive"
             }}
         >
+            <SchoolingSaveModal 
+            form={activityForm}
+             setIsModalVisible={setSchoolingModal} 
+            selectedActivity={null} 
+            isModalVisible={schoolingModal} 
+            onAfterSave={()=>{
+                onAfterSave();
+                setIsModalVisible(false);
+            }} />
+
             {/* 1. PERSONNEL INFO CARD WITH REMARKS & DURATION */}
             {selectedPersonnel && (
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 mb-6 shadow-sm">
@@ -162,7 +205,7 @@ const PersonnelDutyStatusModal: React.FC<PersonnelStatusDutyModalProps> = ({
                             <Select
                                 size="large"
                                 placeholder="Status"
-                                onChange={(val) => setCurrentSelectedStatus(val)}
+                                onChange={(val) => handleSelect(val)}
                                 options={statusOptions}
                             />
                         </Form.Item>
@@ -174,9 +217,9 @@ const PersonnelDutyStatusModal: React.FC<PersonnelStatusDutyModalProps> = ({
                             label={<span className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.1em]">Effectivity Date</span>}
                             rules={[{ required: true, message: "Required" }]}
                         >
-                            <DatePicker 
-                                size="large" 
-                                className="w-full rounded-lg" 
+                            <DatePicker
+                                size="large"
+                                className="w-full rounded-lg"
                                 placeholder="Start Date"
                             />
                         </Form.Item>
@@ -187,9 +230,9 @@ const PersonnelDutyStatusModal: React.FC<PersonnelStatusDutyModalProps> = ({
                             name="endDate"
                             label={<span className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.1em]">End Date (Optional)</span>}
                         >
-                            <DatePicker 
-                                size="large" 
-                                className="w-full rounded-lg" 
+                            <DatePicker
+                                size="large"
+                                className="w-full rounded-lg"
                                 placeholder="End Date"
                             />
                         </Form.Item>
@@ -221,9 +264,7 @@ const PersonnelDutyStatusModal: React.FC<PersonnelStatusDutyModalProps> = ({
 const statusOptions = [
     { value: 'Active', label: <span className="text-green-600">Active Duty</span> },
     { value: 'Restricted', label: <span className="text-orange-500">Restricted</span> },
-    { value: 'Reassigned', label: <span className="text-blue-500">Reassigned</span> },
-    { value: 'Suspended', label: <span className="text-red-500">Suspended</span> },
-    { value: 'Inactive', label: <span className="text-slate-500">Inactive</span> },
+    { value: 'Schooling', label: <span className="text-blue-500">Schooling</span> },
 ];
 
 const statusIcons: Record<string, React.ReactNode> = {

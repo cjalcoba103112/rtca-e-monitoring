@@ -10,7 +10,7 @@ import type { PersonnelActivity } from "../../@types/PersonnelActivity";
 import personelService from "../../services/personelService";
 import { useQuery } from "@tanstack/react-query";
 import activityTypeService from "../../services/activityTypeService";
-import { emptyValues } from "./SchoolingIndex";
+import { emptyValues } from "./RestrictedIndex";
 import { formatDaysToYMD } from "../../utils/formatDaysToYMD";
 
 
@@ -26,7 +26,7 @@ type SaveModalProps = {
     onAfterSave: () => void;
 
 };
-export default function SchoolingSaveModal({
+export default function RestrSaveModal({
     form,
     selectedActivity,
     isModalVisible,
@@ -44,12 +44,12 @@ export default function SchoolingSaveModal({
 
     // 1. Fetch Activity Types
     const { data: activityTypes } = useQuery({
-        queryKey: ["schoolingType",isModalVisible],
+        queryKey: ["RESTRICTEDtYPE",isModalVisible],
         queryFn: async () => {
             const types = await activityTypeService.getAll()
-            const type = types.find(t => t.activityTypeName == "SCHOOLING")
+            const type = types.find(t => t.activityTypeName == "RESTRICTED")
             form.setFieldValue("activityTypeId", type?.activityTypeId)
-            return types?.filter(t => t.activityTypeName == "SCHOOLING")
+            return types?.filter(t => t.activityTypeName == "RESTRICTED")
 
         },
         initialData: [],
@@ -137,7 +137,7 @@ export default function SchoolingSaveModal({
                     personnelActivityId: selectedActivity.personnelActivityId,
                 });
             } else {
-                await personnelActivityService.insertSchooling(payload);
+                await personnelActivityService.insertRestricted(payload);
             }
 
             setIsModalVisible(false);
@@ -153,7 +153,7 @@ export default function SchoolingSaveModal({
 
     return (
         <Modal
-            title={selectedActivity ? "Edit Leave" : "Schooling"}
+            title={selectedActivity ? "Edit Leave" : "Restriction"}
             open={isModalVisible}
             onOk={handleOk}
             okText={selectedActivity ? "Update" : "Submit"}
@@ -179,7 +179,7 @@ export default function SchoolingSaveModal({
                         ))}
                     </Select>
                 </Form.Item>
-                <Form.Item name="title" label="Course Title">
+                <Form.Item name="title" label="Order Title">
                     <Input />
                 </Form.Item>
                 <DateRangeComponent form={form} />
@@ -195,7 +195,7 @@ export default function SchoolingSaveModal({
                         </Spin>
                     </div>
                 )}
-                <Form.Item name="remarks" label="Remarks">
+                <Form.Item name="remarks" label="Remarks / Reason">
                     <TextArea />
                 </Form.Item>
 

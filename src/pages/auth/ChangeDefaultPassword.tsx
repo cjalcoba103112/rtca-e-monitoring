@@ -85,8 +85,8 @@ const ChangeDefaultPassword: React.FC = () => {
                     }}>
                         <KeyOutlined style={{ fontSize: 28, color: '#1677ff' }} />
                     </div>
-                    <Title level={3} style={{ margin: 0 }}>Update Default Password</Title>
-                    <Text type="secondary">You are using a default password. Please set a new secure password to continue.</Text>
+                    <Title level={3} style={{ margin: 0 }}>Update Password</Title>
+                    <Text type="secondary">Please set a new secure password to continue.</Text>
                 </div>
 
                 <Form

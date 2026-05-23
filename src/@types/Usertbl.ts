@@ -11,7 +11,7 @@ export type Usertbl = {
   email?: string | null;
   fullName?:string|null,
   personnelId?:number | null;
-  personnel?: Personnel;
+  personnel?: Personnel | null;
   isActive?:boolean | null
   roleId?:number|null;
   role?:Role

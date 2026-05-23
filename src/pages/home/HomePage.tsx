@@ -1,6 +1,6 @@
 import { Card, Tabs } from "antd";
 import ActivityStatus from "./tabs/ActivityStatus";
-import ByRanks from "./tabs/ByRanks";
+// import ByRanks from "./tabs/ByRanks";
 import ByColorLegend from "./tabs/ByColorLegend";
 
 const { TabPane } = Tabs;
@@ -8,16 +8,17 @@ const { TabPane } = Tabs;
 function HomePage() {
   return (
     <Card className="m-2">
-      <Tabs defaultActiveKey="activity">
+      <Tabs defaultActiveKey="legend">
+        <TabPane tab="By Legend" key="legend">
+          <ByColorLegend />
+        </TabPane>
         <TabPane tab="Activity Status" key="activity">
           <ActivityStatus />
         </TabPane>
-          <TabPane tab="By Legend" key="legend">
-          <ByColorLegend />
-        </TabPane>
-        <TabPane tab="By Rank" key="rank">
+          
+        {/* <TabPane tab="By Rank" key="rank">
           <ByRanks />
-        </TabPane>
+        </TabPane> */}
       </Tabs>
     </Card>
   );

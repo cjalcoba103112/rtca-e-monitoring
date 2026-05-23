@@ -5,21 +5,27 @@ import authService from "../../services/authService";
 import type { Login } from "../../@types/nonTable/Login";
 import { useAuth } from "../../context/UserContext";
 import { useNavigate } from "react-router-dom";
+import ForgotPasswordModal from "./ForgotPassword";
 
 const { Title, Text } = Typography;
 
 export default function LoginTab() {
+  // Login Form States
   const [loading, setLoading] = useState<boolean>(false);
   const [form] = Form.useForm();
   const { setUser } = useAuth();
   const navigate = useNavigate();
 
+  // Forgot Password Modal States
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Login handler
   const onFinishLogin = async (values: Login) => {
     try {
       setLoading(true);
-      const {user,token} = await authService.login(values);
+      const { user, token } = await authService.login(values);
       setUser(user);
-      localStorage.setItem("jwt_token",token??"")
+      localStorage.setItem("jwt_token", token ?? "");
       navigate(user?.role?.indexPath ?? "/");
       form.resetFields();
     } catch (error: any) {
@@ -35,7 +41,7 @@ export default function LoginTab() {
     <div>
       {/* --- Header Section --- */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center  bg-blue-50 text-blue-600 rounded-2xl mb-4">
+        <div className="inline-flex items-center justify-center bg-blue-50 text-blue-600 rounded-2xl mb-4 p-3">
           <LoginOutlined style={{ fontSize: '32px' }} />
         </div>
         <Title level={2} style={{ marginBottom: 8 }}>
@@ -52,7 +58,7 @@ export default function LoginTab() {
         onFinish={onFinishLogin}
         layout="vertical"
         size="large"
-        requiredMark={false} // Cleaner look without red asterisks
+        requiredMark={false}
       >
         <Form.Item
           name="usernameOrEmail"
@@ -75,9 +81,9 @@ export default function LoginTab() {
         <Form.Item
           name="password"
           label={
-            <div className="flex justify-between w-full">
+            <div className="flex justify-between w-full items-center">
               <Text strong className="text-gray-600">Password</Text>
-              
+
             </div>
           }
           rules={[{ required: true, message: "Password required" }]}
@@ -89,7 +95,15 @@ export default function LoginTab() {
             className="rounded-lg h-12"
           />
         </Form.Item>
-
+        <a
+          onClick={(e) => {
+            e.preventDefault();
+            setIsModalOpen(true); // Opens local modal directly
+          }}
+          className="text-xs font-semibold text-blue-500 hover:text-blue-600 select-none transition-colors cursor-pointer"
+        >
+          Forgot Password?
+        </a>
         <Form.Item className="mt-8">
           <Button
             type="primary"
@@ -102,12 +116,17 @@ export default function LoginTab() {
           </Button>
         </Form.Item>
       </Form>
-      
+
       <div className="text-center">
         <Text type="secondary" className="text-xs">
           Secure Login System &copy; {new Date().getFullYear()}
         </Text>
       </div>
+
+      {/* ========================================================================= */}
+      {/* LOCAL FORGOT PASSWORD MODAL CONTAINER                                    */}
+      {/* ========================================================================= */}
+<ForgotPasswordModal open={isModalOpen} onClose={()=>setIsModalOpen(false)}/>
     </div>
   );
 }

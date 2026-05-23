@@ -8,6 +8,8 @@ export type DateRangeComponentProps = {
   startLabel?: string;
   endLabel?: string;
   required?: boolean;
+  onChangeStart?:()=>void;
+  onChangeEnd?:()=>void;
 };
 
 export default function DateRangeComponent({
@@ -17,6 +19,8 @@ export default function DateRangeComponent({
   startLabel = "Start Date",
   endLabel = "End Date",
   required = true,
+  onChangeStart,
+  onChangeEnd
 }: DateRangeComponentProps) {
   return (
     <>
@@ -30,6 +34,7 @@ export default function DateRangeComponent({
         }
       >
         <DatePicker
+          onChange={()=>onChangeStart&& onChangeStart()}
           style={{ width: "100%" }}
           
           disabledDate={(current: Dayjs) => {
@@ -49,6 +54,7 @@ export default function DateRangeComponent({
         }
       >
         <DatePicker
+          onChange={()=>onChangeEnd&& onChangeEnd()}
           style={{ width: "100%" }}
           disabledDate={(current: Dayjs) => {
             const startDate: Dayjs = form.getFieldValue(startName);
