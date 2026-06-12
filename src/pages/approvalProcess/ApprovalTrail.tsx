@@ -5,7 +5,6 @@ import nameFormat from "../../utils/nameFormat";
 import workflowStepsService from "../../services/workflowStepsService";
 import roleService from "../../services/roleService";
 import type { PersonnelActivity } from "../../@types/PersonnelActivity";
-import type { StepItem } from "antd/es/steps";
 import activityAppealService from "../../services/activityAppealService";
 
 
@@ -107,7 +106,7 @@ const ApprovalTrail: React.FC<ApprovalTrailProps> = ({ currentStage, activity, v
   };
 const isOfficer = personnelType === "Officer";
 
- const dynamicItems: StepItem[] = useMemo(() => {
+ const dynamicItems: any[] = useMemo(() => {
   return workflowSteps
     .filter((step) => step.rankCategory?.name === personnelType)
     .sort((a, b) => (a.stepNumber ?? 0) - (b.stepNumber ?? 0))
