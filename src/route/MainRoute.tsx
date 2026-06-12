@@ -30,6 +30,7 @@ import ActivityAppealForm from "../pages/appeal/ActivityAppealForm";
 import SchoolingIndex from "../pages/schooling/SchoolingIndex";
 import RestrictedIndex from "../pages/restricted/RestrictedIndex";
 import MyDepartmentIndex  from "../pages/my-department/MyDepartmentIndex";
+import LongevityPayIndex from "../pages/longevity-pay/LongevityPayIndex";
 
 // Import your pages... (omitted for brevity, keep your existing imports)
 
@@ -77,6 +78,7 @@ export default function MainRoute() {
           {isAllowed("/schooling") && <Route path="/schooling" element={<SchoolingIndex />} />}
            {isAllowed("/restricted") && <Route path="/restricted" element={<RestrictedIndex />} />}
             {isAllowed("/my-department") && <Route path="/my-department" element={<MyDepartmentIndex />} />}
+             {isAllowed("/longevity-pay") && <Route path="/longevity-pay" element={<LongevityPayIndex />} />}
 
           {/* Catch-all for unauthorized paths inside the layout */}
           <Route path="*" element={<Navigate to="/" replace />} />
