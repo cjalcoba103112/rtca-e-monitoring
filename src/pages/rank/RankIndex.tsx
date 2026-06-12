@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import rankService from "../../services/rankService";
 import RankSaveModal from "./RankSaveModal";
 import getOrdinalSuffix from "../../utils/getOrdinalSuffix";
+import formattedPeso from "../../utils/formattedPeso";
 
 const RankIndex: React.FC = () => {
   const [selectedRank, setSelectedRank] = useState<Rank | null>(null);
@@ -41,13 +42,25 @@ const RankIndex: React.FC = () => {
 
   const columns: ColumnsType<Rank> = [
     { title: "Code", dataIndex: "rankCode", key: "rankCode" },
-    { title: "Name", dataIndex: "rankName", key: "rankName" 
+    {
+      title: "Name", dataIndex: "rankName", key: "rankName"
     },
-    { title: "Category", dataIndex: "rankCategory", key: "rankCategory" ,
-      render:(_,record:Rank)=> record.rankCategory?.name
+    {
+      title: "Category", dataIndex: "rankCategory", key: "rankCategory",
+      render: (_, record: Rank) => record.rankCategory?.name
     },
-    { title: "Order", dataIndex: "rankLevel", key: "rankLevel", render:(value:number) => getOrdinalSuffix(value)
-      
+    {
+      title: "Grade", dataIndex: "grade", key: "grade"
+
+    },
+    {
+      title: "Base Pay", dataIndex: "basePay", key: "basePay",
+      render: (value: number) => value && formattedPeso(value),
+
+    },
+    {
+      title: "Order", dataIndex: "rankLevel", key: "rankLevel", render: (value: number) => getOrdinalSuffix(value)
+
     },
     {
       title: "Actions",
@@ -78,8 +91,8 @@ const RankIndex: React.FC = () => {
         Add Rank
       </Button>
       <Table
-       scroll={{ x: 1000 }}
-      size="small"
+        scroll={{ x: 1000 }}
+        size="small"
         columns={columns}
         dataSource={ranks}
         rowKey="rankId"

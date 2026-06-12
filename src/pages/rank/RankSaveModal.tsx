@@ -79,7 +79,28 @@ export default function RankSaveModal({
             }))}
           />
         </Form.Item>
-
+        <Form.Item
+          name="grade"
+          label="Grade"
+          rules={[{ required: true, message: "Please input grade" }]}
+        >
+          <Input />
+        </Form.Item>
+       <Form.Item
+  name="basePay"
+  label="Base Pay"
+  rules={[{ required: true, message: "Please input base pay" }]}
+>
+  <InputNumber
+    min={0}
+    style={{ width: "100%" }}
+    // Formats the value when displaying (adds ₱ and commas)
+    formatter={(value) => `₱ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+    // Parses the value back to a clean number when the user types or submits
+    // parser={(value) => value!.replace(/₱\s?|(,*)/g, "")}
+    placeholder="000,000"
+  />
+</Form.Item>
         <Form.Item
           name="rankLevel"
           label="Asc Order"

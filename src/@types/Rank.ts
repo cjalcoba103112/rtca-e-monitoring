@@ -7,4 +7,6 @@ export type Rank = {
   rankLevel?: number;
   rankCategoryId?: number;
   rankCategory?: RankCategory;
+  basePay?:number;
+  grade?:string;
 };

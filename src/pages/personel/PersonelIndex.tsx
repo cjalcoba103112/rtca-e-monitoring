@@ -18,7 +18,7 @@ import PersonelSaveModal from "./PersonelSaveModal";
 import dayjs, { Dayjs } from "dayjs";
 import { formatDateToMilitary } from "../../utils/formatDateToMilitary";
 import DebounceInput from "../../componets/DebounceInput";
-import nameFormat from "../../utils/nameFormat";
+
 import {
   EditOutlined,
   DeleteOutlined,
@@ -44,7 +44,8 @@ import departmentService from "../../services/departmentService";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+import nameFormat from "../../utils/nameFormat";
 
 export type PersonnelForm = Omit<
   Personnel,
@@ -107,7 +108,7 @@ const PersonnelIndex: React.FC = () => {
   // Current dataset active in view
   const currentData = filteredData.length ? filteredData : personnelList;
 
-  // Helper helper to format designation column string safely
+  // Helper to format designation column string safely for downloads and prints
   const getDesignationString = (record: Personnel) => {
     const primaryDeptName = record.department?.departmentName || "";
     const hasOtherDepts = record.otherDepartmentIds && record.otherDepartmentIds.length > 0;
@@ -129,7 +130,6 @@ const PersonnelIndex: React.FC = () => {
     const fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
     const fileExtension = ".xlsx";
     
-    // Structure Data formatted for Excel rows
     const excelData = currentData.map((item, index) => ({
       "Nr": index + 1,
       "Name": nameFormat(item),
@@ -149,126 +149,133 @@ const PersonnelIndex: React.FC = () => {
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF("landscape");
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4"
+    });
     
+    doc.setFontSize(16);
     doc.text("Personnel List Report", 14, 15);
     doc.setFontSize(10);
     doc.text(`Generated on: ${dayjs().format("YYYY-MM-DD HH:mm")}`, 14, 22);
 
+    // Explicitly omitting "Has Account" / "Account"
     const tableColumn = [
       "Nr", 
       "Name", 
       "Designation", 
       "Email", 
       "Date Entered Service", 
-      "Date Enlisted", 
-      "Last Promotion", 
-      "Account"
+      "Date Enlisted / Commissioned", 
+      "Last Promotion"
     ];
     
-    const tableRows = currentData.map((item, index) => [
+    const tableRows :any = currentData.map((item, index) => [
       index + 1,
       nameFormat(item),
       getDesignationString(item),
       item.email || "",
       item.dateEnteredService ? formatDateToMilitary(item.dateEnteredService) : "",
       item.dateEnlisted ? formatDateToMilitary(item.dateEnlisted) : "",
-      item.dateOfLastPromotion ? formatDateToMilitary(item.dateOfLastPromotion) : "",
-      item.hasAccount ? "Yes" : "No",
+      item.dateOfLastPromotion ? formatDateToMilitary(item.dateOfLastPromotion) : ""
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 28,
       theme: "striped",
       styles: { fontSize: 9, overflow: "linebreak" },
-      columnStyles: { 2: { cellWidth: 50 } } // Allocate extra space for designation
+      columnStyles: { 
+        0: { cellWidth: 10 },
+        1: { cellWidth: 45 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 50 },
+        4: { cellWidth: 35 },
+        5: { cellWidth: 35 },
+        6: { cellWidth: 35 },
+      }
     });
 
     doc.save(`Personnel_Report_${dayjs().format("YYYY-MM-DD")}.pdf`);
   };
 
-const handlePrint = () => {
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
 
-  let tableRowsHtml = "";
-  currentData.forEach((item, index) => {
-    tableRowsHtml += `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${nameFormat(item)}</td>
-        <td>${getDesignationString(item)}</td>
-        <td>${item.email || ""}</td>
-        <td>${item.dateEnteredService ? formatDateToMilitary(item.dateEnteredService) : ""}</td>
-        <td>${item.dateEnlisted ? formatDateToMilitary(item.dateEnlisted) : ""}</td>
-        <td>${item.dateOfLastPromotion ? formatDateToMilitary(item.dateOfLastPromotion) : ""}</td>
-      </tr>
-    `;
-  });
+    let tableRowsHtml = "";
+    currentData.forEach((item, index) => {
+      tableRowsHtml += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${nameFormat(item)}</td>
+          <td>${getDesignationString(item)}</td>
+          <td>${item.email || ""}</td>
+          <td>${item.dateEnteredService ? formatDateToMilitary(item.dateEnteredService) : ""}</td>
+          <td>${item.dateEnlisted ? formatDateToMilitary(item.dateEnlisted) : ""}</td>
+          <td>${item.dateOfLastPromotion ? formatDateToMilitary(item.dateOfLastPromotion) : ""}</td>
+        </tr>
+      `;
+    });
 
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Personnel List Print</title>
-        <style>
-          /* CRITICAL: Sets landscape orientation and 0.5-inch margin */
-          @page {
-            size: landscape;
-            margin: 0.5in;
-          }
-          
-          body { 
-            font-family: sans-serif; 
-            color: #333; 
-            margin: 0; /* Reset body margin so @page margin controls the spacing */
-            padding: 0;
-          }
-          h2 { margin-top: 0; margin-bottom: 5px; }
-          p { font-size: 12px; color: #666; margin-bottom: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background-color: #f2f2f2; font-weight: bold; }
-          tr:nth-child(even) { background-color: #f9f9f9; }
-          
-          /* Ensures table headers repeat if the content spans multiple pages */
-          thead { display: table-header-group; }
-          tr { page-break-inside: avoid; }
-        </style>
-      </head>
-      <body>
-        <h2>Personnel List Report</h2>
-        <p>Printed on: ${dayjs().format("MMMM DD, YYYY HH:mm")}</p>
-        <table>
-          <thead>
-            <tr>
-              <th>Nr</th>
-              <th>Name</th>
-              <th>Designation</th>
-              <th>Email</th>
-              <th>Date Entered Service</th>
-              <th>Date Enlisted / Commissioned</th>
-              <th>Last Promotion</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRowsHtml}
-          </tbody>
-        </table>
-        <script>
-          window.onload = function() {
-            window.print();
-            window.close();
-          };
-        </script>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
-};
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Personnel List Print</title>
+          <style>
+            @page {
+              size: landscape;
+              margin: 0.5in;
+            }
+            body { 
+              font-family: sans-serif; 
+              color: #333; 
+              margin: 0; 
+              padding: 0;
+            }
+            h2 { margin-top: 0; margin-bottom: 5px; }
+            p { font-size: 12px; color: #666; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+            th { background-color: #f2f2f2; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            thead { display: table-header-group; }
+            tr { page-break-inside: avoid; }
+          </style>
+        </head>
+        <body>
+          <h2>Personnel List Report</h2>
+          <p>Printed on: ${dayjs().format("MMMM DD, YYYY HH:mm")}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Nr</th>
+                <th>Name</th>
+                <th>Designation</th>
+                <th>Email</th>
+                <th>Date Entered Service</th>
+                <th>Date Enlisted / Commissioned</th>
+                <th>Last Promotion</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRowsHtml}
+            </tbody>
+          </table>
+          <script>
+            window.onload = function() {
+              window.print();
+              window.close();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
-  // Dropdown menu options for Export Button
   const exportMenuItems: MenuProps["items"] = [
     {
       key: "excel",
@@ -498,7 +505,6 @@ const handlePrint = () => {
             Add Personnel
           </Button>
           
-          {/* Actionable dropdown option for printing/exporting data */}
           <Dropdown menu={{ items: exportMenuItems }} placement="bottomLeft">
             <Button icon={<DownloadOutlined />}>
               Export / Print
