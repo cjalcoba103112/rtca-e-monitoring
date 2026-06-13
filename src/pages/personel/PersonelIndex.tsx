@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Table,
   Button,
@@ -46,6 +46,7 @@ import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import nameFormat from "../../utils/nameFormat";
+import { usePrint } from "../../hooks/documents/usePrint";
 
 export type PersonnelForm = Omit<
   Personnel,
@@ -74,6 +75,9 @@ export const emptyPersonnel: Personnel = {
 };
 
 const PersonnelIndex: React.FC = () => {
+    const ref = useRef<HTMLDivElement | null>(null);
+
+  const { handlePrint } = usePrint({ ref,orientation:'landscape' });
   const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(
     null,
   );
@@ -201,81 +205,7 @@ const PersonnelIndex: React.FC = () => {
     doc.save(`Personnel_Report_${dayjs().format("YYYY-MM-DD")}.pdf`);
   };
 
-  const handlePrint = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    let tableRowsHtml = "";
-    currentData.forEach((item, index) => {
-      tableRowsHtml += `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${nameFormat(item)}</td>
-          <td>${getDesignationString(item)}</td>
-          <td>${item.email || ""}</td>
-          <td>${item.dateEnteredService ? formatDateToMilitary(item.dateEnteredService) : ""}</td>
-          <td>${item.dateEnlisted ? formatDateToMilitary(item.dateEnlisted) : ""}</td>
-          <td>${item.dateOfLastPromotion ? formatDateToMilitary(item.dateOfLastPromotion) : ""}</td>
-        </tr>
-      `;
-    });
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Personnel List Print</title>
-          <style>
-            @page {
-              size: landscape;
-              margin: 0.5in;
-            }
-            body { 
-              font-family: sans-serif; 
-              color: #333; 
-              margin: 0; 
-              padding: 0;
-            }
-            h2 { margin-top: 0; margin-bottom: 5px; }
-            p { font-size: 12px; color: #666; margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-            th { background-color: #f2f2f2; font-weight: bold; }
-            tr:nth-child(even) { background-color: #f9f9f9; }
-            thead { display: table-header-group; }
-            tr { page-break-inside: avoid; }
-          </style>
-        </head>
-        <body>
-          <h2>Personnel List Report</h2>
-          <p>Printed on: ${dayjs().format("MMMM DD, YYYY HH:mm")}</p>
-          <table>
-            <thead>
-              <tr>
-                <th>Nr</th>
-                <th>Name</th>
-                <th>Designation</th>
-                <th>Email</th>
-                <th>Date Entered Service</th>
-                <th>Date Enlisted / Commissioned</th>
-                <th>Last Promotion</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRowsHtml}
-            </tbody>
-          </table>
-          <script>
-            window.onload = function() {
-              window.print();
-              window.close();
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  };
-
+ 
   const exportMenuItems: MenuProps["items"] = [
     {
       key: "excel",
@@ -293,7 +223,7 @@ const PersonnelIndex: React.FC = () => {
       key: "print",
       label: "Print Table",
       icon: <PrinterOutlined className="text-blue-500" />,
-      onClick: handlePrint,
+      onClick:()=> handlePrint(),
     },
   ];
 
@@ -532,10 +462,10 @@ const PersonnelIndex: React.FC = () => {
           }}
         />
       </div>
-
-      <Table
+<div ref={ref}>
+<Table
         sticky
-        scroll={{ x: "max-content", y: "calc(100vh - 250px)" }}
+        scroll={{ x: "max-content"}}
         pagination={false}
         size="small"
         columns={columns}
@@ -550,6 +480,8 @@ const PersonnelIndex: React.FC = () => {
             (record.personnelActivities?.length || 0) > 0,
         }}
       />
+</div>
+      
       <UserSaveModal
         form={userForm}
         isModalVisible={isUserModalVisible}

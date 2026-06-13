@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Table, Tag, Space, Typography, Card, Button, Badge } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useQuery } from '@tanstack/react-query';
-import { FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { DownloadOutlined, FileExcelOutlined, FilePdfOutlined, PrinterOutlined } from '@ant-design/icons';
 import dashboardService from '../../../services/dashboardService';
 import nameFormat from '../../../utils/nameFormat';
 
@@ -11,15 +11,16 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { usePrint } from '../../../hooks/documents/usePrint';
 
 const { Text } = Typography;
 
 // --- Strong Color Palette ---
 const getRandomColor = (index?: number) => {
   const colors = [
-     "#E11D48", "#008080","#6D28D9","#D97706", 
-     "#4D7C0F","#1E6091", "#C2410C", "#0891B2", "#059669", "#B45309", "#BE185D",
-     "#2563EB", "#4338CA", "#C026D3", "#15803D",
+    "#E11D48", "#008080", "#6D28D9", "#D97706",
+    "#4D7C0F", "#1E6091", "#C2410C", "#0891B2", "#059669", "#B45309", "#BE185D",
+    "#2563EB", "#4338CA", "#C026D3", "#15803D",
     "#0284C7", "#7C3AED", "#DB2777"
   ];
   if (index || index === 0) return colors[index % colors.length];
@@ -61,6 +62,10 @@ export const ByColorLegend: React.FC = () => {
     initialData: [],
     refetchInterval: 30000,
   });
+
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  const { handlePrint } = usePrint({ ref, orientation: "landscape" });
 
   // Computes color mapping AND aggregates real-time headcounts per activity
   const activityMetrics = useMemo(() => {
@@ -215,7 +220,7 @@ export const ByColorLegend: React.FC = () => {
 
         didParseCell: (data) => {
           if (data.section === 'body') {
-           
+
             const rowIndex = data.row.index;
             const item = processedGroups.Officers[rowIndex];
             if (item?.currentActivity) {
@@ -228,8 +233,8 @@ export const ByColorLegend: React.FC = () => {
                 // Set light background (simulating the 0.45 opacity filter used on web table layout)
                 data.cell.styles.fillColor = [
                   Math.round(rgb[0] + (255 - rgb[0]) * 0.55),
-                  Math.round( rgb[1] + (255 - rgb[1]) * 0.55),
-                  Math.round( rgb[2] + (255 - rgb[2]) * 0.55)
+                  Math.round(rgb[1] + (255 - rgb[1]) * 0.55),
+                  Math.round(rgb[2] + (255 - rgb[2]) * 0.55)
                 ];
                 data.cell.styles.textColor = [0, 0, 0]; // Keep dark font readability sharp
               }
@@ -342,66 +347,8 @@ export const ByColorLegend: React.FC = () => {
           background-color: ${bgHover} !important;
         }
       `;
-    });
-
-    // --- ONLY CAPTURE TABLES IN PRINT ---
-    stylesString += `
-      @media print {
-        /* Hide everything else */
-        .no-print-zone, 
-        .hide-column-on-print {
-          display: none !important;
-        }
-
-        /* Reset general document layout */
-        body, html, #root {
-          background: #ffffff !important;
-          color: #000000 !important;
-          padding: 0 !important;
-          margin: 0 !important;
-        }
-
-        /* Make appended bracket text visible */
-        .print-only-activity-text {
-          display: inline !important;
-        }
-
-        /* Clean up Ant Design tables for print */
-        .ant-table-wrapper {
-          margin-bottom: 24px !important;
-          page-break-inside: auto !important;
-        }
-        .ant-table {
-          background: #ffffff !important;
-        }
-        .ant-table-title {
-          background: #ffffff !important;
-          padding: 8px 0 !important;
-          font-size: 16pt !important;
-          font-weight: bold !important;
-          color: #000000 !important;
-          border: none !important;
-        }
-        .ant-table-thead > tr > th {
-          background: #f1f5f9 !important;
-          color: #000000 !important;
-          font-weight: bold !important;
-          border-bottom: 2px solid #000000 !important;
-        }
-        .ant-table-tbody > tr > td {
-          background: #ffffff !important;
-          color: #000000 !important;
-          border-bottom: 1px solid #cbd5e1 !important;
-          padding: 6px 4px !important;
-        }
-        .ant-table-thead {
-          display: table-header-group !important;
-        }
-        tr {
-          page-break-inside: avoid !important;
-        }
-      }
-    `;
+    }); 
+ 
     return <style>{stylesString}</style>;
   }, [activityMetrics]);
 
@@ -428,6 +375,9 @@ export const ByColorLegend: React.FC = () => {
             ))}
           </Space>
           <Space size="middle">
+            <Button type="primary" icon={<PrinterOutlined />} onClick={handlePrint} style={{ backgroundColor: '#1c5bb9', borderColor: '#1c5bb9', fontWeight: 600 }}>
+              Print
+            </Button>
             <Button type="primary" icon={<FileExcelOutlined />} onClick={handleExportExcel} style={{ backgroundColor: '#15803D', borderColor: '#15803D', fontWeight: 600 }}>
               Export Excel
             </Button>
@@ -439,8 +389,7 @@ export const ByColorLegend: React.FC = () => {
 
       </Card>
 
-      {/* --- ONLY CAPTURED ZONE --- */}
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <div ref={ref} >
 
         {/* --- Officers Dynamic Data Table --- */}
         <Table
@@ -464,7 +413,7 @@ export const ByColorLegend: React.FC = () => {
           bordered
         />
 
-      </Space>
+      </div>
     </div>
   );
 };
